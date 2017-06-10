@@ -1,0 +1,72 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Stardust", "Stardust", "{83B23151-E137-4051-B7C8-5B2799C41064}"
+EndProject
+Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "Stardust.Packaging", "Stardust\Stardust.Packaging\Stardust.Packaging.androidproj", "{8D9D787F-1D51-4910-8E07-4BE2E124CF01}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Stardust.NativeActivity", "Stardust\Stardust.NativeActivity\Stardust.NativeActivity.vcxproj", "{89C6CE14-188C-4520-BF14-79C126220EF7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|ARM = Debug|ARM
+		Debug|ARM64 = Debug|ARM64
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|ARM = Release|ARM
+		Release|ARM64 = Release|ARM64
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Debug|ARM.ActiveCfg = Debug|ARM
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Debug|ARM.Build.0 = Debug|ARM
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Debug|ARM.Deploy.0 = Debug|ARM
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Debug|ARM64.Build.0 = Debug|ARM64
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Debug|ARM64.Deploy.0 = Debug|ARM64
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Debug|x64.ActiveCfg = Debug|x64
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Debug|x64.Build.0 = Debug|x64
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Debug|x64.Deploy.0 = Debug|x64
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Debug|x86.ActiveCfg = Debug|x86
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Debug|x86.Build.0 = Debug|x86
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Debug|x86.Deploy.0 = Debug|x86
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Release|ARM.ActiveCfg = Release|ARM
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Release|ARM.Build.0 = Release|ARM
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Release|ARM.Deploy.0 = Release|ARM
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Release|ARM64.ActiveCfg = Release|ARM64
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Release|ARM64.Build.0 = Release|ARM64
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Release|ARM64.Deploy.0 = Release|ARM64
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Release|x64.ActiveCfg = Release|x64
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Release|x64.Build.0 = Release|x64
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Release|x64.Deploy.0 = Release|x64
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Release|x86.ActiveCfg = Release|x86
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Release|x86.Build.0 = Release|x86
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01}.Release|x86.Deploy.0 = Release|x86
+		{89C6CE14-188C-4520-BF14-79C126220EF7}.Debug|ARM.ActiveCfg = Debug|ARM
+		{89C6CE14-188C-4520-BF14-79C126220EF7}.Debug|ARM.Build.0 = Debug|ARM
+		{89C6CE14-188C-4520-BF14-79C126220EF7}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{89C6CE14-188C-4520-BF14-79C126220EF7}.Debug|ARM64.Build.0 = Debug|ARM64
+		{89C6CE14-188C-4520-BF14-79C126220EF7}.Debug|x64.ActiveCfg = Debug|x64
+		{89C6CE14-188C-4520-BF14-79C126220EF7}.Debug|x64.Build.0 = Debug|x64
+		{89C6CE14-188C-4520-BF14-79C126220EF7}.Debug|x86.ActiveCfg = Debug|x86
+		{89C6CE14-188C-4520-BF14-79C126220EF7}.Debug|x86.Build.0 = Debug|x86
+		{89C6CE14-188C-4520-BF14-79C126220EF7}.Release|ARM.ActiveCfg = Release|ARM
+		{89C6CE14-188C-4520-BF14-79C126220EF7}.Release|ARM.Build.0 = Release|ARM
+		{89C6CE14-188C-4520-BF14-79C126220EF7}.Release|ARM64.ActiveCfg = Release|ARM64
+		{89C6CE14-188C-4520-BF14-79C126220EF7}.Release|ARM64.Build.0 = Release|ARM64
+		{89C6CE14-188C-4520-BF14-79C126220EF7}.Release|x64.ActiveCfg = Release|x64
+		{89C6CE14-188C-4520-BF14-79C126220EF7}.Release|x64.Build.0 = Release|x64
+		{89C6CE14-188C-4520-BF14-79C126220EF7}.Release|x86.ActiveCfg = Release|x86
+		{89C6CE14-188C-4520-BF14-79C126220EF7}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8D9D787F-1D51-4910-8E07-4BE2E124CF01} = {83B23151-E137-4051-B7C8-5B2799C41064}
+		{89C6CE14-188C-4520-BF14-79C126220EF7} = {83B23151-E137-4051-B7C8-5B2799C41064}
+	EndGlobalSection
+EndGlobal
