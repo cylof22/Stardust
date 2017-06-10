@@ -3,9 +3,20 @@
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="android_native_app_glue.h" />
+    <ClInclude Include="Vulkan\Include\vk_platform.h">
+      <Filter>Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Vulkan\Include\vulkan.h">
+      <Filter>Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="android_native_app_glue.c" />
     <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Vulkan">
+      <UniqueIdentifier>{904378d8-04d6-4f00-b494-4d6dec4d913d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>
