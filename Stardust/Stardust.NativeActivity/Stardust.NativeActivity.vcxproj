@@ -207,12 +207,17 @@
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="android_native_app_glue.h" />
+    <ClInclude Include="Settings.h" />
+    <ClInclude Include="Stardust.h" />
     <ClInclude Include="Vulkan\Include\vk_platform.h" />
     <ClInclude Include="Vulkan\Include\vulkan.h" />
+    <ClInclude Include="Vulkan\vulkan_wrapper.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="android_native_app_glue.c" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Stardust.cpp" />
+    <ClCompile Include="Vulkan\vulkan_wrapper.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

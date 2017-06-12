@@ -9,10 +9,19 @@
     <ClInclude Include="Vulkan\Include\vulkan.h">
       <Filter>Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="Settings.h" />
+    <ClInclude Include="Stardust.h" />
+    <ClInclude Include="Vulkan\vulkan_wrapper.h">
+      <Filter>Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="android_native_app_glue.c" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Stardust.cpp" />
+    <ClCompile Include="Vulkan\vulkan_wrapper.cpp">
+      <Filter>Vulkan</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Vulkan">
