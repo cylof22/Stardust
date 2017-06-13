@@ -17,6 +17,7 @@
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "AndroidProject1.NativeActivity", __VA_ARGS__))
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "AndroidProject1.NativeActivity", __VA_ARGS__))
+#include "Vulkan\vulkan_wrapper.h"
 
 /**
 * Our saved state data.
@@ -27,6 +28,8 @@ struct saved_state {
 	int32_t y;
 };
 
+
+// Todo: What kinds of shared state should be shared for the vulkan rendering engine?
 /**
 * Shared state for our app.
 */
@@ -232,6 +235,8 @@ void android_main(struct android_app* state) {
 	engine.sensorEventQueue = ASensorManager_createEventQueue(engine.sensorManager,
 		state->looper, LOOPER_ID_USER, NULL, NULL);
 
+	InitVulkan();
+
 	if (state->savedState != NULL) {
 		// We are starting with a previous saved state; restore from it.
 		engine.state = *(struct saved_state*)state->savedState;
@@ -290,4 +295,6 @@ void android_main(struct android_app* state) {
 			engine_draw_frame(&engine);
 		}
 	}
+
+	DeVulkan();
 }

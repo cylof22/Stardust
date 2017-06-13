@@ -1,4 +1,6 @@
 #include "Stardust.h"
+#include "Vulkan\vulkan_utils.h"
+#include "Vulkan\vulkan_wrapper.h"
 #include <thread>
 
 #define RND_GEN(x) (x = x * 196314165 + 907633515)
@@ -27,11 +29,15 @@ int application_Init(ANativeWindow* pWnd, int argc, char ** argv)
 	// Todo: CPU Metric Initialization
 
 	// 
+
 	return STARDUST_CONTINUE;
 }
 
 int VK_Init()
 {
+	init_device(s_glob_state.window, s_glob_state.width, s_glob_state.height, true);
+	
+	vkGetPhysicalDeviceProperties(s_gpu, &s_gpu_properties);
 
 	return 0;
 }

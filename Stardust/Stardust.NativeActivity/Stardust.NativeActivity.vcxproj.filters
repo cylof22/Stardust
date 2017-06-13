@@ -14,6 +14,10 @@
     <ClInclude Include="Vulkan\vulkan_wrapper.h">
       <Filter>Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="Vulkan\vulkan_utils.h">
+      <Filter>Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vulkan_engine.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="android_native_app_glue.c" />
@@ -22,6 +26,10 @@
     <ClCompile Include="Vulkan\vulkan_wrapper.cpp">
       <Filter>Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="Vulkan\vulkan_utils.cpp">
+      <Filter>Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="vulkan_engine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Vulkan">

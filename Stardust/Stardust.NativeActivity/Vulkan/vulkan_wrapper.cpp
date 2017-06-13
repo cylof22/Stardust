@@ -22,13 +22,15 @@ extern "C" {
 #include <dlfcn.h>
 
 int InitVulkan(void) {
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
-    void *libvulkan = dlopen("libvulkan.so", RTLD_NOW | RTLD_LOCAL);
-#else
+#if defined(_WIN32) || defined(_WIN64)
 	void *libvulkan = LoadLibrary("vulkan-1.dll");
+#elif defined(__ANDROID__)
+	void *libvulkan = dlopen("libvulkan.so", RTLD_NOW | RTLD_LOCAL);
 #endif
 
     if (!libvulkan) return 0;
+
+	s_vk_dll = libvulkan;
 
     // Vulkan supported, set function addresses
     vkCreateInstance = reinterpret_cast<PFN_vkCreateInstance>(dlsym(libvulkan, "vkCreateInstance"));
@@ -254,6 +256,20 @@ int InitVulkan(void) {
     return 1;
 }
 
+int DeVulkan()
+{
+	if (s_vk_dll) {
+#ifdef __ANDROID__
+		dlclose(s_vk_dll);
+#else
+		FreeLibrary(s_vk_dll);
+#endif
+		s_vk_dll = NULL;
+	}
+
+	return 0;
+}
+
 // No Vulkan support, do not set function addresses
 PFN_vkCreateInstance vkCreateInstance;
 PFN_vkDestroyInstance vkDestroyInstance;
@@ -439,9 +455,6 @@ PFN_vkCreateAndroidSurfaceKHR vkCreateAndroidSurfaceKHR;
 PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
 PFN_vkGetPhysicalDeviceWin32PresentationSupportKHR vkGetPhysicalDeviceWin32PresentationSupportKHR;
 #endif
-PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT;
-PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT;
-PFN_vkDebugReportMessageEXT vkDebugReportMessageEXT;
 
 #ifdef __cplusplus
 }

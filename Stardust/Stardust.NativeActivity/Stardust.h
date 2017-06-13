@@ -13,6 +13,7 @@
 #pragma once
 
 #include "Settings.h"
+#include "vulkan_engine.h"
 
 enum exit_code_t
 {

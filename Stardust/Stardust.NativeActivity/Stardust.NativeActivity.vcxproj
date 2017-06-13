@@ -114,7 +114,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <ExecutablePath>C:\ProgramData\Microsoft\AndroidNDK64\android-ndk-r13b\sources\third_party\vulkan\src\libs;$(ExecutablePath)</ExecutablePath>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" />
@@ -129,6 +131,7 @@
       <CompileAs>CompileAsCpp</CompileAs>
       <CppLanguageStandard>c++11</CppLanguageStandard>
       <PreprocessorDefinitions>VK_USE_PLATFORM_ANDROID_KHR</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\ProgramData\Microsoft\AndroidNDK64\android-ndk-r13b\sources\third_party\vulkan\src\libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <LibraryDependencies>%(LibraryDependencies);GLESv1_CM;EGL;</LibraryDependencies>
@@ -211,13 +214,17 @@
     <ClInclude Include="Stardust.h" />
     <ClInclude Include="Vulkan\Include\vk_platform.h" />
     <ClInclude Include="Vulkan\Include\vulkan.h" />
+    <ClInclude Include="Vulkan\vulkan_utils.h" />
     <ClInclude Include="Vulkan\vulkan_wrapper.h" />
+    <ClInclude Include="vulkan_engine.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="android_native_app_glue.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Stardust.cpp" />
+    <ClCompile Include="Vulkan\vulkan_utils.cpp" />
     <ClCompile Include="Vulkan\vulkan_wrapper.cpp" />
+    <ClCompile Include="vulkan_engine.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
