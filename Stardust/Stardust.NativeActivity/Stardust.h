@@ -15,14 +15,6 @@
 #include "Settings.h"
 #include "vulkan_engine.h"
 
-enum exit_code_t
-{
-	STARDUST_EXIT = 0,
-	STARDUST_ERROR = 1,
-	STARDUST_NOT_SUPPORTED,
-	STARDUST_CONTINUE
-};
-
 struct graph_data_t
 {
 	int sampleidx;
