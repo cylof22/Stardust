@@ -131,29 +131,26 @@ int VKU_Alloc_Image_Object(VKU_IMAGE_MEMORY_POOL *mempool,
 
 	return 1;
 }
-//=============================================================================
 
 //=============================================================================
-int VKU_Load_Shader(VkDevice device,
-	const char *filename,
-	VkShaderModule *shaderModule)
+int VKU_Load_Shader(AAssetManager * pMgr, VkDevice device, const char * filename, VkShaderModule * shaderModule)
 {
 	if (!device || !filename || !shaderModule)
 		return 0;
 
-	FILE *fp = fopen(filename, "rb");
-	if (!fp)
+	AAsset* pAsset = AAssetManager_open(pMgr, filename, AASSET_MODE_UNKNOWN);
+	if (!pAsset)
 		return 0;
 
-	fseek(fp, 0, SEEK_END);
-	size_t size = ftell(fp);
-	fseek(fp, 0, SEEK_SET);
+	size_t size = AAsset_getLength(pAsset);
+
 	unsigned char *bytecode = (unsigned char*)malloc(size);
+	off_t readSize = AAsset_read(pAsset, (void*)bytecode, size);
+	assert(size == readSize);
 
 	if (!bytecode) return 0;
 
-	fread(bytecode, 1, size, fp);
-	fclose(fp);
+	AAsset_close(pAsset);
 
 	VkShaderModule sm;
 	const VkShaderModuleCreateInfo shader_module_info = {

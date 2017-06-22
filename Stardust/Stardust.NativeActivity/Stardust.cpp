@@ -3,7 +3,7 @@
 #include "Vulkan\vulkan_wrapper.h"
 #include <thread>
 
-int application_Init(ANativeWindow* pWnd, int argc, char ** argv)
+int application_Init(android_app* pApp, ANativeWindow* pWnd, int argc, char ** argv)
 {
 	s_glob_state.cpu_core_count = std::thread::hardware_concurrency();
 	s_glob_state.transform_time = 4;
@@ -20,6 +20,8 @@ int application_Init(ANativeWindow* pWnd, int argc, char ** argv)
 		s_glob_state.graph_data[i].empty_flag = 1;
 	}
 
+	s_glob_state.app = pApp;
+
 	s_glob_state.window = pWnd;
 	s_glob_state.height = ANativeWindow_getHeight(pWnd);
 	s_glob_state.width = ANativeWindow_getWidth(pWnd);
@@ -33,7 +35,7 @@ int application_Init(ANativeWindow* pWnd, int argc, char ** argv)
 
 int VK_Init()
 {
-	init_device(s_glob_state.window, s_glob_state.width, s_glob_state.height, true);
+	init_device(s_glob_state.app,s_glob_state.window, s_glob_state.width, s_glob_state.height, true);
 	
 	// Todo: Crash in Mali No call
 	/*VkPhysicalDeviceProperties gpu_properties;

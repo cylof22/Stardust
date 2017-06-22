@@ -1,5 +1,6 @@
 #pragma once
 #include <cassert>
+#include <android\asset_manager.h>
 #include "Include\vulkan.h"
 
 #define VK_ALLOC_CALLBACK (VkAllocationCallbacks*)NULL
@@ -60,6 +61,6 @@ int VKU_Alloc_Image_Object(VKU_IMAGE_MEMORY_POOL *objpool,
 	VkDeviceSize          *offset,
 	uint32_t              memtypeindex);
 
-int VKU_Load_Shader(VkDevice device,
+int VKU_Load_Shader(AAssetManager* pMgr, VkDevice device,
 	const char      *filename,
 	VkShaderModule  *shaderModule);

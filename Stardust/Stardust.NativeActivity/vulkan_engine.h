@@ -76,6 +76,7 @@ typedef struct GRAPH
 } GRAPH;
 
 //=============================================================================
+static android_app*                    s_app;
 static double                          s_time;
 static float                           s_time_delta;
 static float                           s_fps;
@@ -182,7 +183,7 @@ int engine_shutdown(void);
 int engine_update(void);
 void update_camera(void);
 //=============================================================================
-int init_device(void* pWnd, int width, int height, VkBool32 windowed);
+int init_device(android_app* pApp, void* pWnd, int width, int height, VkBool32 windowed);
 void deinit_device(void);
 int init_framebuffer(void* pWnd, int width, int height, VkBool32 windowed, uint32_t image_count, VkImage *images);
 

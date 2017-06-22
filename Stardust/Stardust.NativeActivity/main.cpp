@@ -52,7 +52,7 @@ struct engine {
 */
 static int engine_init_display(struct engine* engine) {
 	// initialize vulkan and display
-	application_Init(engine->app->window, 0, nullptr);
+	application_Init(engine->app, engine->app->window, 0, nullptr);
 	VK_Init();
 	// initialize OpenGL ES and EGL
 

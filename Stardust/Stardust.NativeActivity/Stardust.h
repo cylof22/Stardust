@@ -44,11 +44,12 @@ struct glob_state_t
 	int windowed;
 	int verbose;
 	int cpu_core_count;
+	android_app* app;
 };
 
 static struct glob_state_t s_glob_state;
 
-int application_Init(ANativeWindow* pWnd, int argc, char **argv);
+int application_Init(android_app* pApp, ANativeWindow* pWnd, int argc, char **argv);
 
 int VK_Init();
 int VK_Shutdown();

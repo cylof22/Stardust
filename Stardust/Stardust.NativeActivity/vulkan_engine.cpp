@@ -249,9 +249,9 @@ int engine_update(void)
 
 #ifdef MT_UPDATE
 	// Todo: How to use the system sychronous mechanism?
-	/*for (int i = 1; i < s_glob_state->cpu_core_count; ++i) {
-		SDL_SemPost(s_cmdgen_sem[i]);
-	}*/
+	for (int i = 1; i < s_cpu_core_count; ++i) {
+		sem_post(&s_cmdgen_sem[i]);
+	}
 #endif
 
 	VkCommandBufferBeginInfo begin_info = {
@@ -329,7 +329,7 @@ void update_camera(void)
 	glm::normalize(s_camera_right);
 }
 
-int init_device(void* pWnd, int width, int height, VkBool32 windowed)
+int init_device(android_app* pApp, void* pWnd, int width, int height, VkBool32 windowed)
 {
 	init_gpu_instance();
 
@@ -340,6 +340,7 @@ int init_device(void* pWnd, int width, int height, VkBool32 windowed)
 
 	s_win_width = width;
 	s_win_height = height;
+	s_app = pApp;
 
 	return 0;
 }
@@ -865,8 +866,8 @@ int create_display_pipeline(void)
 	fs = VK_NULL_HANDLE;
 
 	// In android the shaderc module can be used to convert glsl shader into the vulkan shader file
-	VKU_Load_Shader(s_gpu_device, "Data/Shader_GLSL/VS_Quad_UL.bil", &vs);
-	VKU_Load_Shader(s_gpu_device, "Data/Shader_GLSL/FS_Display.bil", &fs);
+	VKU_Load_Shader(s_app->activity->assetManager, s_gpu_device, "Shader_GLSL/VS_Quad_UL.bil", &vs);
+	VKU_Load_Shader(s_app->activity->assetManager, s_gpu_device, "Shader_GLSL/FS_Display.bil", &fs);
 
 	if (vs == VK_NULL_HANDLE || fs == VK_NULL_HANDLE)
 	{
@@ -982,8 +983,8 @@ int create_particle_pipeline(void)
 	vs = VK_NULL_HANDLE;
 	fs = VK_NULL_HANDLE;
 
-	VKU_Load_Shader(s_gpu_device, "Data/Shader_GLSL/VS_Particle_Draw.bil", &vs);
-	VKU_Load_Shader(s_gpu_device, "Data/Shader_GLSL/FS_Particle_Draw.bil", &fs);
+	VKU_Load_Shader(s_app->activity->assetManager,s_gpu_device, "Shader_GLSL/VS_Particle_Draw.bil", &vs);
+	VKU_Load_Shader(s_app->activity->assetManager,s_gpu_device, "Shader_GLSL/FS_Particle_Draw.bil", &fs);
 
 	if (vs == VK_NULL_HANDLE || fs == VK_NULL_HANDLE)
 	{
@@ -1229,8 +1230,8 @@ int create_copy_pipeline(void)
 	vs = VK_NULL_HANDLE;
 	fs = VK_NULL_HANDLE;
 
-	VKU_Load_Shader(s_gpu_device, "Data/Shader_GLSL/VS_Quad_UL_INV.bil", &vs);
-	VKU_Load_Shader(s_gpu_device, "Data/Shader_GLSL/FS_Copy_Images.bil", &fs);
+	VKU_Load_Shader(s_app->activity->assetManager, s_gpu_device, "Shader_GLSL/VS_Quad_UL_INV.bil", &vs);
+	VKU_Load_Shader(s_app->activity->assetManager, s_gpu_device, "Shader_GLSL/FS_Copy_Images.bil", &fs);
 
 	if (vs == VK_NULL_HANDLE || fs == VK_NULL_HANDLE)
 	{
@@ -1361,8 +1362,8 @@ int create_skybox_pipeline(void)
 	vs = VK_NULL_HANDLE;
 	fs = VK_NULL_HANDLE;
 
-	VKU_Load_Shader(s_gpu_device, "Data/Shader_GLSL/VS_Skybox.bil", &vs);
-	VKU_Load_Shader(s_gpu_device, "Data/Shader_GLSL/FS_Skybox.bil", &fs);
+	VKU_Load_Shader(s_app->activity->assetManager, s_gpu_device, "Shader_GLSL/VS_Skybox.bil", &vs);
+	VKU_Load_Shader(s_app->activity->assetManager, s_gpu_device, "Shader_GLSL/FS_Skybox.bil", &fs);
 
 	if (vs == VK_NULL_HANDLE || fs == VK_NULL_HANDLE)
 	{
@@ -1457,7 +1458,7 @@ int create_skybox_generate_pipeline(void)
 {
 	VkShaderModule cs;
 	cs = VK_NULL_HANDLE;
-	VKU_Load_Shader(s_gpu_device, "Data/Shader_GLSL/CS_Skybox_Generate.bil", &cs);
+	VKU_Load_Shader(s_app->activity->assetManager, s_gpu_device, "Shader_GLSL/CS_Skybox_Generate.bil", &cs);
 
 	if (cs == VK_NULL_HANDLE)
 	{
