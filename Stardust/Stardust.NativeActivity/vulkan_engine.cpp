@@ -532,7 +532,7 @@ int init_framebuffer(void* pWnd, int width, int height, VkBool32 windowed, uint3
 	create_info.queueFamilyIndexCount = 1;
 	create_info.pQueueFamilyIndices = &s_queue_family_index;
 	create_info.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-	create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+	create_info.compositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
 	create_info.presentMode = *chosen_present_mode;
 	create_info.clipped = VK_FALSE;
 	create_info.oldSwapchain = VK_NULL_HANDLE;
@@ -736,7 +736,6 @@ int create_float_renderpass(void)
 	VkAttachmentLoadOp color_ld_op = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	VkAttachmentStoreOp color_st_op = VK_ATTACHMENT_STORE_OP_STORE;
 	VkFormat colorFormat = VK_FORMAT_R8G8B8A8_UNORM;
-	VkImageLayout layout = VK_IMAGE_LAYOUT_GENERAL;
 
 	VkAttachmentDescription color_attachment_desc;
 	color_attachment_desc.flags = 0;
@@ -746,8 +745,8 @@ int create_float_renderpass(void)
 	color_attachment_desc.storeOp = color_st_op;
 	color_attachment_desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	color_attachment_desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	color_attachment_desc.initialLayout = layout;
-	color_attachment_desc.finalLayout = layout;
+	color_attachment_desc.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	color_attachment_desc.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	VkAttachmentDescription ds_attachment_desc;
 	ds_attachment_desc.flags = 0;
@@ -757,11 +756,11 @@ int create_float_renderpass(void)
 	ds_attachment_desc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	ds_attachment_desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	ds_attachment_desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	ds_attachment_desc.initialLayout = layout;
-	ds_attachment_desc.finalLayout = layout;
+	ds_attachment_desc.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	ds_attachment_desc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-	VkAttachmentReference color_attachment_ref = { 0, layout };
-	VkAttachmentReference ds_attachment_ref = { 1, layout };
+	VkAttachmentReference color_attachment_ref = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+	VkAttachmentReference ds_attachment_ref = { 1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
 
 	VkSubpassDescription subpass_desc;
 	subpass_desc.flags = 0;
@@ -860,7 +859,6 @@ int create_display_renderpass(void)
 	VkAttachmentLoadOp color_ld_op = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	VkAttachmentStoreOp color_st_op = VK_ATTACHMENT_STORE_OP_STORE;
 	VkFormat colorFormat = VK_FORMAT_R8G8B8A8_UNORM;
-	VkImageLayout layout = VK_IMAGE_LAYOUT_GENERAL;
 
 	VkAttachmentDescription color_attachment_desc;
 	color_attachment_desc.flags = 0;
@@ -870,8 +868,8 @@ int create_display_renderpass(void)
 	color_attachment_desc.storeOp = color_st_op;
 	color_attachment_desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	color_attachment_desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	color_attachment_desc.initialLayout = layout;
-	color_attachment_desc.finalLayout = layout;
+	color_attachment_desc.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	color_attachment_desc.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	VkAttachmentDescription ds_attachment_desc;
 	ds_attachment_desc.flags = 0;
@@ -881,11 +879,11 @@ int create_display_renderpass(void)
 	ds_attachment_desc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	ds_attachment_desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	ds_attachment_desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	ds_attachment_desc.initialLayout = layout;
-	ds_attachment_desc.finalLayout = layout;
+	ds_attachment_desc.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	ds_attachment_desc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-	VkAttachmentReference color_attachment_ref = { 0, layout };
-	VkAttachmentReference ds_attachment_ref = { 1, layout };
+	VkAttachmentReference color_attachment_ref = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+	VkAttachmentReference ds_attachment_ref = { 1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
 
 	VkSubpassDescription subpass_desc;
 	subpass_desc.flags = 0;
@@ -986,9 +984,25 @@ int create_display_pipeline(void)
 	shader_stage_infos[0] = vs_info;
 	shader_stage_infos[1] = fs_info;
 
+
+	VkVertexInputBindingDescription vf_binding_desc = {
+		0, sizeof(uint32_t), VK_VERTEX_INPUT_RATE_VERTEX
+	};
+
+	std::array<VkVertexInputAttributeDescription, 1> vf_attribute_desc = {
+		{
+			0, 0, VK_FORMAT_R32_UINT, 0
+		},
+	};
+
+	VkPipelineVertexInputStateCreateInfo vf_info = {
+		VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO, NULL, 0,
+		1, &vf_binding_desc, vf_attribute_desc.size(), vf_attribute_desc.data()
+	};
+
 	VkGraphicsPipelineCreateInfo pi_info = {
 		VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO, NULL, 0, 2, shader_stage_infos,
-		NULL, &ia_info, &tess_info, &vp_info, &rs_info, &ms_info, &db_info, &cb_info,
+		&vf_info, &ia_info, &tess_info, &vp_info, &rs_info, &ms_info, &db_info, &cb_info,
 		NULL, s_common_pipeline_layout, s_win_renderpass, 0, VK_NULL_HANDLE, 0
 	};
 
