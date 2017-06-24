@@ -4,6 +4,37 @@
 #include <array>
 #include <glm\gtx\euler_angles.hpp>
 
+#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "AndroidProject1.NativeActivity", __VA_ARGS__))
+#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "AndroidProject1.NativeActivity", __VA_ARGS__))
+
+VKAPI_ATTR VkBool32 VKAPI_CALL debugFunction(VkFlags msgFlags, VkDebugReportObjectTypeEXT objType, uint64_t srcObj, size_t location, int32_t msgCode, const char * pLayerPrefix, const char * pMsg, void * pUserData)
+{
+	if (msgFlags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
+	{
+		LOGI("[VK_DEBUG_REPORT] ERROR: [ %s ] Code %i : %s", pLayerPrefix, msgCode, pMsg);
+	}
+	else if (msgFlags & VK_DEBUG_REPORT_WARNING_BIT_EXT)
+	{
+		LOGI("[VK_DEBUG_REPORT] WARNING: [ %s ] Code %i : %s", pLayerPrefix, msgCode, pMsg);
+	}
+	else if (msgFlags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
+	{
+		LOGI("[VK_DEBUG_REPORT] INFORMATION: [ %s ] Code %i : %s", pLayerPrefix, msgCode, pMsg);
+	}
+	else if (msgFlags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
+	{
+		LOGI("[VK_DEBUG_REPORT] PERFORMANCE: [ %s ] Code %i : %s", pLayerPrefix, msgCode, pMsg);
+	}
+	else if (msgFlags & VK_DEBUG_REPORT_DEBUG_BIT_EXT)
+	{
+		LOGI("[VK_DEBUG_REPORT] VALIDATION: [%s] Code %i : %s", pLayerPrefix, msgCode, pMsg);
+	}
+	else
+		return VK_FALSE;
+
+	return VK_SUCCESS;
+}
+
 int init_gpu_instance()
 {
 	VkApplicationInfo app_info = {};
@@ -13,11 +44,24 @@ int init_gpu_instance()
 	app_info.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 	app_info.pEngineName = "Starduster1";
 	app_info.engineVersion = VK_MAKE_VERSION(1, 1, 0);
-	app_info.apiVersion = VK_API_VERSION;
+	app_info.apiVersion = VK_API_VERSION_1_0;
 
-	std::array<const char*, 2> wsi_extensions = {
+	std::array<const char*, 3> wsi_extensions = {
 		VK_KHR_SURFACE_EXTENSION_NAME,
-		VK_KHR_PLATFORM_SPECIFIC_SURFACE_EXTENSION_NAME
+		VK_KHR_ANDROID_SURFACE_EXTENSION_NAME,
+		VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
+	};
+
+	std::array<const char*, 7> wsi_layerNames = {
+		"VK_LAYER_GOOGLE_threading"
+		,"VK_LAYER_GOOGLE_unique_objects"
+		,"VK_LAYER_LUNARG_parameter_validation"
+		,"VK_LAYER_LUNARG_object_tracker"
+		,"VK_LAYER_LUNARG_image"
+		,"VK_LAYER_LUNARG_core_validation"
+		,"VK_LAYER_LUNARG_swapchain"
+		//,"VK_LAYER_LUNARG_api_dump"
+		//,"VK_LAYER_LUNARG_device_limits"
 	};
 
 	VkInstanceCreateInfo instance_info = {};
@@ -25,12 +69,27 @@ int init_gpu_instance()
 	instance_info.pNext = NULL;
 	instance_info.flags = 0;
 	instance_info.pApplicationInfo = &app_info;
-	instance_info.enabledLayerCount = 0;
-	instance_info.ppEnabledLayerNames = NULL;
+	instance_info.enabledLayerCount = 7;
+	instance_info.ppEnabledLayerNames = wsi_layerNames.data();
 	instance_info.enabledExtensionCount = wsi_extensions.size();
 	instance_info.ppEnabledExtensionNames = wsi_extensions.data();
 
 	VK_VALIDATION_RESULT(vkCreateInstance(&instance_info, VK_ALLOC_CALLBACK, &s_instance));
+
+	vkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(s_instance, "vkCreateDebugReportCallbackEXT");
+	vkDestroyDebugReportCallbackEXT = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(s_instance, "vkDestroyDebugReportCallbackEXT");
+	vkDebugReportMessageEXT = (PFN_vkDebugReportMessageEXT)vkGetInstanceProcAddr(s_instance, "vkDebugReportMessageEXT");
+
+	s_dbgReportCallbackInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+	s_dbgReportCallbackInfo.pNext = nullptr;
+	s_dbgReportCallbackInfo.pUserData = nullptr;
+	s_dbgReportCallbackInfo.flags = VK_DEBUG_REPORT_WARNING_BIT_EXT |
+		VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT |
+		VK_DEBUG_REPORT_ERROR_BIT_EXT |
+		VK_DEBUG_REPORT_DEBUG_BIT_EXT;
+	s_dbgReportCallbackInfo.pfnCallback = debugFunction;
+
+	VK_VALIDATION_RESULT(vkCreateDebugReportCallbackEXT(s_instance, &s_dbgReportCallbackInfo, nullptr, &s_debugReportCallback));
 
 	uint32_t count = 1;
 	VK_VALIDATION_RESULT(vkEnumeratePhysicalDevices(s_instance, &count, &s_gpu));
@@ -41,7 +100,7 @@ int init_gpu_instance()
 
 	float queuePriority = 1.0f;
 	VkDeviceQueueCreateInfo queue_info;
-	queue_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	queue_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 	queue_info.pNext = NULL;
 	queue_info.flags = 0;
 	queue_info.queueFamilyIndex = 0;
@@ -82,6 +141,8 @@ int init_gpu_instance()
 
 int engine_init(void)
 {
+	s_cpu_core_count = std::thread::hardware_concurrency();
+
 	//s_font_letter_count = 0;
 
 	s_frame = 0;
@@ -189,8 +250,8 @@ int engine_init(void)
 		return 0;
 	if (!create_copy_renderpass())
 		return 0;
-	if (!create_copy_pipeline())
-		return 0;
+	/*if (!create_copy_pipeline())
+		return 0;*/
 	//if (!Create_Font_Resources()) LOG_AND_RETURN0();
 	//if (!Create_Font_Pipeline()) LOG_AND_RETURN0();
 	if (!create_skybox_geometry())
@@ -202,14 +263,13 @@ int engine_init(void)
 	if (!create_skybox_image())
 		return 0;
 	//if (!Create_Palette_Images()) LOG_AND_RETURN0();
-	if (!render_to_skybox_image())
-		return 0;
+	/*if (!render_to_skybox_image())
+		return 0;*/
 	//if (!Render_To_Palette_Images()) LOG_AND_RETURN0();
 	//if (!Create_Common_Graph_Resources()) LOG_AND_RETURN0();
 
 	// CPU Graph
 
-	// s_glob_state->cpu_core_count= 8
 	// create the semaphore
 	for (int i = 0; i < s_cpu_core_count; ++i) {
 		sem_init(&(s_cmdgen_sem[i]), 1, 0);
@@ -658,7 +718,7 @@ void update_common_dset(void)
 		&constant_buf_info, VK_NULL_HANDLE
 	};
 
-	std::array<VkWriteDescriptorSet, 7> write_descriptors = {
+	std::array<VkWriteDescriptorSet, 4> write_descriptors = {
 		update_buffers,
 		update_sampler_float_image,
 		update_sampler_skybox_image,
@@ -865,7 +925,8 @@ int create_display_pipeline(void)
 	vs = VK_NULL_HANDLE;
 	fs = VK_NULL_HANDLE;
 
-	// In android the shaderc module can be used to convert glsl shader into the vulkan shader file
+	//VKU_Compile_Shader(s_app->activity->assetManager, s_gpu_device,"Shader_GLSL/VS_Quad_UL.vert", shaderc_glsl_vertex_shader, &vs);
+	//VKU_Compile_Shader(s_app->activity->assetManager, s_gpu_device,"Shader_GLSL/FS_Display.frag", shaderc_glsl_fragment_shader, &fs);
 	VKU_Load_Shader(s_app->activity->assetManager, s_gpu_device, "Shader_GLSL/VS_Quad_UL.bil", &vs);
 	VKU_Load_Shader(s_app->activity->assetManager, s_gpu_device, "Shader_GLSL/FS_Display.bil", &fs);
 
@@ -956,7 +1017,6 @@ int create_particles(void)
 	VK_VALIDATION_RESULT(vkAllocateMemory(s_gpu_device, &alloc_info, VK_ALLOC_CALLBACK, &s_particle_seed_mem));
 	VK_VALIDATION_RESULT(vkBindBufferMemory(s_gpu_device, s_particle_seed_buf, s_particle_seed_mem, 0));
 
-
 	unsigned int seed = 23232323;
 	uint32_t *pseed = (uint32_t*) malloc(k_Def_Point_Count * sizeof(*pseed));
 	if (!pseed)
@@ -1041,7 +1101,7 @@ int create_particle_pipeline(void)
 	VkVertexInputBindingDescription vf_binding_desc = {
 		0, sizeof(uint32_t), VK_VERTEX_INPUT_RATE_VERTEX
 	};
-	
+
 	std::array<VkVertexInputAttributeDescription, 1> vf_attribute_desc = {
 		{
 			0, 0, VK_FORMAT_R32_UINT, 0
@@ -1325,13 +1385,10 @@ int create_copy_pipeline(void)
 		&ds_info, s_common_pipeline_layout, s_copy_renderpass, 0, VK_NULL_HANDLE, 0
 	};
 
-	VkResult r = vkCreateGraphicsPipelines(s_gpu_device, VK_NULL_HANDLE, 1, &pi_info, VK_ALLOC_CALLBACK, &s_copy_image_pipe);
+	VK_VALIDATION_RESULT(vkCreateGraphicsPipelines(s_gpu_device, VK_NULL_HANDLE, 1, &pi_info, VK_ALLOC_CALLBACK, &s_copy_image_pipe));
 
 	vkDestroyShaderModule(s_gpu_device, vs, VK_ALLOC_CALLBACK);
 	vkDestroyShaderModule(s_gpu_device, fs, VK_ALLOC_CALLBACK);
-
-	if (r != VK_SUCCESS)
-		return 0;
 
 	return 1;
 }
@@ -1517,8 +1574,10 @@ int create_skybox_image(void)
 	return 1;
 }
 
+//Todo: need to implment the png image reading
 int render_to_skybox_image(void)
 {
+	return 1;
 	VkImageView image_view[6];
 	VkFramebuffer framebuffer;
 

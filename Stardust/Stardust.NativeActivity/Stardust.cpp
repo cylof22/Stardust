@@ -36,10 +36,6 @@ int application_Init(android_app* pApp, ANativeWindow* pWnd, int argc, char ** a
 int VK_Init()
 {
 	init_device(s_glob_state.app,s_glob_state.window, s_glob_state.width, s_glob_state.height, true);
-	
-	// Todo: Crash in Mali No call
-	/*VkPhysicalDeviceProperties gpu_properties;
-	vkGetPhysicalDeviceProperties(s_gpu, &s_gpu_properties);*/
 
 	engine_init();
 

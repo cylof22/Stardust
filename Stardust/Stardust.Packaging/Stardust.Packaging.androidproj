@@ -119,6 +119,29 @@
     </AntPackage>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <Content Include="assets\Shader_GLSL\CS_Skybox_Generate.bil" />
+    <Content Include="assets\Shader_GLSL\FS_Copy_Images.bil" />
+    <Content Include="assets\Shader_GLSL\FS_Display.bil" />
+    <Content Include="assets\Shader_GLSL\FS_Font.bil" />
+    <Content Include="assets\Shader_GLSL\FS_Graph.bil" />
+    <Content Include="assets\Shader_GLSL\FS_Hud.bil" />
+    <Content Include="assets\Shader_GLSL\FS_Particle_Draw.bil" />
+    <Content Include="assets\Shader_GLSL\FS_Skybox.bil" />
+    <Content Include="assets\Shader_GLSL\VS_Font.bil" />
+    <Content Include="assets\Shader_GLSL\VS_Graph.bil" />
+    <Content Include="assets\Shader_GLSL\VS_Hud.bil" />
+    <Content Include="assets\Shader_GLSL\VS_Particle_Draw.bil" />
+    <Content Include="assets\Shader_GLSL\VS_Quad_LL.bil" />
+    <Content Include="assets\Shader_GLSL\VS_Quad_UL.bil" />
+    <Content Include="assets\Shader_GLSL\VS_Quad_UL_INV.bil" />
+    <Content Include="assets\Shader_GLSL\VS_Skybox.bil" />
+    <Content Include="libs\arm64-v8a\libVkLayer_core_validation.so" />
+    <Content Include="libs\arm64-v8a\libVkLayer_image.so" />
+    <Content Include="libs\arm64-v8a\libVkLayer_object_tracker.so" />
+    <Content Include="libs\arm64-v8a\libVkLayer_parameter_validation.so" />
+    <Content Include="libs\arm64-v8a\libVkLayer_swapchain.so" />
+    <Content Include="libs\arm64-v8a\libVkLayer_threading.so" />
+    <Content Include="libs\arm64-v8a\libVkLayer_unique_objects.so" />
     <Content Include="res\values\strings.xml" />
     <AntBuildXml Include="build.xml" />
     <AndroidManifest Include="AndroidManifest.xml" />

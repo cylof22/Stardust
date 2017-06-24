@@ -1,7 +1,8 @@
 #pragma once
 #include <cassert>
 #include <android\asset_manager.h>
-#include "Include\vulkan.h"
+#include <vulkan\vulkan.h>
+//#include"..\ShaderC\include\shaderc\shaderc.hpp"
 
 #define VK_ALLOC_CALLBACK (VkAllocationCallbacks*)NULL
 #define VK_PAGE_SIZE (1024*64)
@@ -64,3 +65,7 @@ int VKU_Alloc_Image_Object(VKU_IMAGE_MEMORY_POOL *objpool,
 int VKU_Load_Shader(AAssetManager* pMgr, VkDevice device,
 	const char      *filename,
 	VkShaderModule  *shaderModule);
+
+//int VKU_Compile_Shader(AAssetManager* pMgr, VkDevice device,
+//	const char* fileName, shaderc_shader_kind kind,
+//	VkShaderModule* shaderModule);

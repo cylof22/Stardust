@@ -456,6 +456,10 @@ PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
 PFN_vkGetPhysicalDeviceWin32PresentationSupportKHR vkGetPhysicalDeviceWin32PresentationSupportKHR;
 #endif
 
+PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT;
+PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT;
+PFN_vkDebugReportMessageEXT vkDebugReportMessageEXT;
+
 #ifdef __cplusplus
 }
 #endif

@@ -21,8 +21,7 @@
 extern "C" {
 #endif
 
-#define VK_NO_PROTOTYPES 1
-#include "include\vulkan.h"
+#include <vulkan\vulkan.h>
 
 static void							   *s_vk_dll = NULL;
 
@@ -237,6 +236,9 @@ extern PFN_vkGetPhysicalDeviceWin32PresentationSupportKHR vkGetPhysicalDeviceWin
 
 // VK_KHR_sampler_mirror_clamp_to_edge
 
+extern PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT;
+extern PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT;
+extern PFN_vkDebugReportMessageEXT vkDebugReportMessageEXT;
 #ifdef __cplusplus
 }
 #endif

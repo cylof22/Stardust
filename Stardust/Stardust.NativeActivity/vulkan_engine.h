@@ -4,7 +4,7 @@
 #include <semaphore.h>
 #include <glm\glm.hpp>
 #include "Settings.h"
-#include "Vulkan\Include\vulkan.h"
+#include <vulkan\vulkan.h>
 #include "Vulkan\vulkan_utils.h"
 
 enum exit_code_t
@@ -74,6 +74,9 @@ typedef struct GRAPH
 	ViewportState                      viewport;
 	int                                draw_background;
 } GRAPH;
+//===========================================================================
+static VkDebugReportCallbackEXT s_debugReportCallback;
+static VkDebugReportCallbackCreateInfoEXT s_dbgReportCallbackInfo;
 
 //=============================================================================
 static android_app*                    s_app;
