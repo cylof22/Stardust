@@ -169,6 +169,23 @@ int VKU_Load_Shader(AAssetManager * pMgr, VkDevice device, const char * filename
 	return 1;
 }
 
+stbi_uc* load_image(AAssetManager * pMgr, const char * fileName, int * x, int * y, int * comp, int req_comp)
+{
+	AAsset* pAsset = AAssetManager_open(pMgr, fileName, AASSET_MODE_UNKNOWN);
+	if (pAsset == nullptr)
+		return nullptr;
+
+	size_t size = AAsset_getLength(pAsset);
+	if (size == 0)
+		return nullptr;
+
+	unsigned char* imageData = (unsigned char*)malloc(size);
+	off_t readSize = AAsset_read(pAsset, (void*)imageData, size);
+	assert(size = readSize);
+
+	return stbi_load_from_memory(imageData, readSize, x, y, comp, req_comp);
+}
+
 //int VKU_Compile_Shader(AAssetManager * pMgr, VkDevice device, const char * fileName, shaderc_shader_kind kind, VkShaderModule * shaderModule)
 //{
 //	AAsset* pAsset = AAssetManager_open(pMgr, fileName, AASSET_MODE_UNKNOWN);

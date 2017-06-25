@@ -135,6 +135,17 @@
     <Content Include="assets\Shader_GLSL\VS_Quad_UL.bil" />
     <Content Include="assets\Shader_GLSL\VS_Quad_UL_INV.bil" />
     <Content Include="assets\Shader_GLSL\VS_Skybox.bil" />
+    <Content Include="assets\Texture\Palette_Fire.png" />
+    <Content Include="assets\Texture\Palette_Muted.png" />
+    <Content Include="assets\Texture\Palette_Purple.png" />
+    <Content Include="assets\Texture\Palette_Rainbow.png" />
+    <Content Include="assets\Texture\Palette_Sky.png" />
+    <Content Include="assets\Texture\Skybox_back6.png" />
+    <Content Include="assets\Texture\Skybox_bottom4.png" />
+    <Content Include="assets\Texture\Skybox_front5.png" />
+    <Content Include="assets\Texture\Skybox_left2.png" />
+    <Content Include="assets\Texture\Skybox_right1.png" />
+    <Content Include="assets\Texture\Skybox_top3.png" />
     <Content Include="libs\arm64-v8a\libVkLayer_core_validation.so" />
     <Content Include="libs\arm64-v8a\libVkLayer_image.so" />
     <Content Include="libs\arm64-v8a\libVkLayer_object_tracker.so" />

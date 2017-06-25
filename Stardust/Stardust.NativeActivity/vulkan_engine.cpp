@@ -263,8 +263,8 @@ int engine_init(void)
 	if (!create_skybox_image())
 		return 0;
 	//if (!Create_Palette_Images()) LOG_AND_RETURN0();
-	/*if (!render_to_skybox_image())
-		return 0;*/
+	if (!render_to_skybox_image())
+		return 0;
 	//if (!Render_To_Palette_Images()) LOG_AND_RETURN0();
 	//if (!Create_Common_Graph_Resources()) LOG_AND_RETURN0();
 
@@ -1642,9 +1642,9 @@ int render_to_skybox_image(void)
 	VK_VALIDATION_RESULT(vkMapMemory(s_gpu_device, staging_res.memory, 0, VK_WHOLE_SIZE, 0, (void **)&ptr));
 
 	const char *name[6] = {
-		"Data/Texture/Skybox_right1.png", "Data/Texture/Skybox_left2.png",
-		"Data/Texture/Skybox_top3.png", "Data/Texture/Skybox_bottom4.png",
-		"Data/Texture/Skybox_front5.png", "Data/Texture/Skybox_back6.png"
+		"Texture/Skybox_right1.png", "Texture/Skybox_left2.png",
+		"Texture/Skybox_top3.png", "Texture/Skybox_bottom4.png",
+		"Texture/Skybox_front5.png", "Texture/Skybox_back6.png"
 	};
 
 	//Todo: How to load assert image in Android by AssetManager and stb image library
@@ -1652,11 +1652,12 @@ int render_to_skybox_image(void)
 	VkBufferImageCopy buffer_copy_regions[6] = { 0 };
 	for (int i = 0; i < 6; ++i) {
 		int w, h, comp;
-		//stbi_uc *data = Load_Image(name[i], &w, &h, &comp, 4);
-		//if (!data) LOG_AND_RETURN0();
+		stbi_uc* data = load_image(s_app->activity->assetManager, name[i], &w, &h, &comp, 4);
+		if (!data)
+			continue;
 
 		size_t size = w * h * comp;
-		//memcpy(ptr + offset, data, size);
+		memcpy(ptr + offset, data, size);
 
 		buffer_copy_regions[i].bufferOffset = offset;
 		buffer_copy_regions[i].imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -1667,7 +1668,7 @@ int render_to_skybox_image(void)
 		buffer_copy_regions[i].imageExtent.depth = 1;
 
 		offset += size;
-		//stbi_image_free(data);
+		stbi_image_free(data);
 	}
 	vkUnmapMemory(s_gpu_device, staging_res.memory);
 
@@ -1816,7 +1817,6 @@ int render_to_skybox_image(void)
 
 	vkDestroyImageView(s_gpu_device, optimal_image_view, VK_ALLOC_CALLBACK);
 	vkDestroyImage(s_gpu_device, optimal_image, VK_ALLOC_CALLBACK);
-	//VK_FREE_MEM(optimal_image_mem);
 	for (int i = 0; i < 6; ++i)
 		vkDestroyImageView(s_gpu_device, image_view[i], VK_ALLOC_CALLBACK);
 	

@@ -12,6 +12,9 @@
       <Filter>Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="vulkan_engine.h" />
+    <ClInclude Include="Stb\stb_image.h">
+      <Filter>Stb</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="android_native_app_glue.c" />
@@ -24,10 +27,16 @@
       <Filter>Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="vulkan_engine.cpp" />
+    <ClCompile Include="Stb\stb_image.c">
+      <Filter>Stb</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Vulkan">
       <UniqueIdentifier>{904378d8-04d6-4f00-b494-4d6dec4d913d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Stb">
+      <UniqueIdentifier>{7d47691b-41da-462c-83c0-00fa0d6e6930}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

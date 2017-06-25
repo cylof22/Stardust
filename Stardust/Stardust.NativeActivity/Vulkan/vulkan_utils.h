@@ -2,6 +2,7 @@
 #include <cassert>
 #include <android\asset_manager.h>
 #include <vulkan\vulkan.h>
+#include "..\Stb\stb_image.h"
 //#include"..\ShaderC\include\shaderc\shaderc.hpp"
 
 #define VK_ALLOC_CALLBACK (VkAllocationCallbacks*)NULL
@@ -69,3 +70,5 @@ int VKU_Load_Shader(AAssetManager* pMgr, VkDevice device,
 //int VKU_Compile_Shader(AAssetManager* pMgr, VkDevice device,
 //	const char* fileName, shaderc_shader_kind kind,
 //	VkShaderModule* shaderModule);
+
+stbi_uc* load_image(AAssetManager* pMgr, const char* fileName, int *x, int *y, int *comp, int req_comp);
