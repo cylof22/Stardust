@@ -1245,7 +1245,7 @@ int create_copy_renderpass(void)
 	VkAttachmentLoadOp color_ld_op = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	VkAttachmentStoreOp color_st_op = VK_ATTACHMENT_STORE_OP_STORE;
 	VkFormat colorFormat = VK_FORMAT_R8G8B8A8_UNORM;
-	VkImageLayout layout = VK_IMAGE_LAYOUT_GENERAL;
+	VkImageLayout layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	VkAttachmentDescription color_attachment_desc;
 	color_attachment_desc.flags = 0;
@@ -1258,6 +1258,7 @@ int create_copy_renderpass(void)
 	color_attachment_desc.initialLayout = layout;
 	color_attachment_desc.finalLayout = layout;
 
+	// The Mali GPU only support maximal 4 color attachment
 	VkAttachmentReference color_attachment_refs[6];
 	for (int i = 0; i < 6; ++i) {
 		color_attachment_refs[i].attachment = i;
@@ -1591,7 +1592,6 @@ int create_skybox_image(void)
 //Todo: need to implment the png image reading
 int render_to_skybox_image(void)
 {
-	return 1;
 	VkImageView image_view[6];
 	VkFramebuffer framebuffer;
 
