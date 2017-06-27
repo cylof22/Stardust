@@ -72,3 +72,11 @@ int VKU_Load_Shader(AAssetManager* pMgr, VkDevice device,
 //	VkShaderModule* shaderModule);
 
 stbi_uc* load_image(AAssetManager* pMgr, const char* fileName, int *x, int *y, int *comp, int req_comp);
+
+void setImageLayout(VkCommandBuffer cmdbuffer, 
+	VkImage image,
+	VkImageLayout oldImageLayout,
+	VkImageLayout newImageLayout,
+	VkImageSubresourceRange subresourceRange,
+	VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+	VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);

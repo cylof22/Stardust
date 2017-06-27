@@ -1294,13 +1294,14 @@ int create_copy_renderpass(void)
 	render_info.dependencyCount = 0;
 	render_info.pDependencies = NULL;
 
-	VK_VALIDATION_RESULT(vkCreateRenderPass(s_gpu_device, &render_info, VK_ALLOC_CALLBACK, &s_copy_renderpass));
+	//VK_VALIDATION_RESULT(vkCreateRenderPass(s_gpu_device, &render_info, VK_ALLOC_CALLBACK, &s_copy_renderpass));
 
 	return 1;
 }
 
 int create_copy_pipeline(void)
 {
+	return 1;
 	VkShaderModule vs, fs;
 	vs = VK_NULL_HANDLE;
 	fs = VK_NULL_HANDLE;
@@ -1592,30 +1593,7 @@ int create_skybox_image(void)
 //Todo: need to implment the png image reading
 int render_to_skybox_image(void)
 {
-	VkImageView image_view[6];
-	VkFramebuffer framebuffer;
-
-	for (uint32_t i = 0; i < 6; ++i) {
-		VkComponentMapping channels = {
-			VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A
-		};
-		VkImageSubresourceRange subres_range = {
-			VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, i, 1
-		};
-		VkImageViewCreateInfo image_info = {
-			VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, NULL, 0,
-			s_skybox_image, VK_IMAGE_VIEW_TYPE_2D,
-			VK_FORMAT_R8G8B8A8_UNORM, channels, subres_range
-		};
-		VK_VALIDATION_RESULT(vkCreateImageView(s_gpu_device, &image_info, VK_ALLOC_CALLBACK, &image_view[i]));
-	}
-
-	VkFramebufferCreateInfo fb_info = {
-		VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO, NULL, 0,
-		s_copy_renderpass, 6, image_view, 1024, 1024, 1
-	};
-	VK_VALIDATION_RESULT(vkCreateFramebuffer(s_gpu_device, &fb_info, VK_ALLOC_CALLBACK, &framebuffer));
-
+	// Use stagging buffer to copy the skybox image
 	struct {
 		VkBuffer buffer;
 		VkDeviceMemory memory;
@@ -1647,9 +1625,8 @@ int render_to_skybox_image(void)
 		"Texture/Skybox_front5.png", "Texture/Skybox_back6.png"
 	};
 
-	//Todo: How to load assert image in Android by AssetManager and stb image library
 	VkDeviceSize offset = 0;
-	VkBufferImageCopy buffer_copy_regions[6] = { 0 };
+	std::array<VkBufferImageCopy, 6> buffer_copy_regions;
 	for (int i = 0; i < 6; ++i) {
 		int w, h, comp;
 		stbi_uc* data = load_image(s_app->activity->assetManager, name[i], &w, &h, &comp, 4);
@@ -1674,7 +1651,7 @@ int render_to_skybox_image(void)
 
 	VkImage optimal_image;
 	VkImageCreateInfo image_info = {
-		VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, NULL, 0,
+		VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, NULL, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT,
 		VK_IMAGE_TYPE_2D, VK_FORMAT_R8G8B8A8_UNORM,{ 1024, 1024, 1 }, 1, 6, VK_SAMPLE_COUNT_1_BIT,
 		VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, VK_SHARING_MODE_EXCLUSIVE, 0,
 		NULL, VK_IMAGE_LAYOUT_UNDEFINED
@@ -1696,73 +1673,28 @@ int render_to_skybox_image(void)
 	VkImageView optimal_image_view;
 	VkImageViewCreateInfo image_view_info = {
 		VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, NULL, 0,
-		optimal_image, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_FORMAT_R8G8B8A8_UNORM,
+		optimal_image, VK_IMAGE_VIEW_TYPE_CUBE, VK_FORMAT_R8G8B8A8_UNORM,
 		{ VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A },
 		{ VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 6 }
 	};
 	VK_VALIDATION_RESULT(vkCreateImageView(s_gpu_device, &image_view_info, VK_ALLOC_CALLBACK, &optimal_image_view));
-	update_common_dset();
-	VkDescriptorImageInfo image_sampler_attach = {
-		s_sampler, optimal_image_view, VK_IMAGE_LAYOUT_GENERAL
-	};
 
-	VkWriteDescriptorSet update_sampler_font_image = {
-		VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, NULL, s_common_dset[s_res_idx],
-		1, 0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &image_sampler_attach,
-		VK_NULL_HANDLE, VK_NULL_HANDLE
-	};
+	// update the stagging buffer into the cubebox image
+	VkCommandBufferAllocateInfo staggingCmdInfo;
+	staggingCmdInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	staggingCmdInfo.pNext = NULL;
+	staggingCmdInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	staggingCmdInfo.commandPool = s_command_pool;
+	staggingCmdInfo.commandBufferCount = 1;
 
-	vkUpdateDescriptorSets(s_gpu_device, 1, &update_sampler_font_image, 0, NULL);
+	VkCommandBuffer staggingCmd;
+	vkAllocateCommandBuffers(s_gpu_device, &staggingCmdInfo, &staggingCmd);
 
-	VkCommandBufferBeginInfo begin_info = {
-		VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, NULL, 0, NULL
-	};
-
-	VkSubmitInfo submit_info;
-	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submit_info.pNext = NULL;
-	submit_info.waitSemaphoreCount = 0;
-	submit_info.pWaitSemaphores = NULL;
-	submit_info.pWaitDstStageMask = NULL;
-	submit_info.commandBufferCount = 1;
-	submit_info.pCommandBuffers = s_cmdbuf_display;
-	submit_info.signalSemaphoreCount = 0;
-	submit_info.pSignalSemaphores = NULL;
-
-	VK_VALIDATION_RESULT(vkBeginCommandBuffer(s_cmdbuf_display[0], &begin_info));
-	vkCmdCopyBufferToImage(s_cmdbuf_display[0], staging_res.buffer, optimal_image, VK_IMAGE_LAYOUT_GENERAL, 6, buffer_copy_regions);
-	VK_VALIDATION_RESULT(vkEndCommandBuffer(s_cmdbuf_display[0]));
-
-	if (vkQueueSubmit(s_gpu_queue, 1, &submit_info, VK_NULL_HANDLE) != VK_SUCCESS) {
-		return 0;
-	}
-	if (vkQueueWaitIdle(s_gpu_queue) != VK_SUCCESS) {
-		return 0;
-	}
-
-	vkFreeMemory(s_gpu_device, staging_res.memory, NULL);
-	vkDestroyBuffer(s_gpu_device, staging_res.buffer, NULL);
-
-	VkImageSubresourceRange image_subresource_range;
-	image_subresource_range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	image_subresource_range.baseMipLevel = 0;
-	image_subresource_range.levelCount = 1;
-	image_subresource_range.baseArrayLayer = 0;
-	image_subresource_range.layerCount = 6;
-
-	VkImageMemoryBarrier linear_image_memory_barrier;
-	linear_image_memory_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	linear_image_memory_barrier.pNext = NULL;
-	linear_image_memory_barrier.srcAccessMask = 0;
-	linear_image_memory_barrier.dstAccessMask = 0;
-	linear_image_memory_barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	linear_image_memory_barrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-	linear_image_memory_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	linear_image_memory_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	linear_image_memory_barrier.image = optimal_image;
-	linear_image_memory_barrier.subresourceRange = image_subresource_range;
-
-	VK_VALIDATION_RESULT(vkBeginCommandBuffer(s_cmdbuf_display[0], &begin_info));
+	VkCommandBufferBeginInfo staggingBeginInfo;
+	staggingBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	staggingBeginInfo.pNext = NULL;
+	staggingBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	staggingBeginInfo.pInheritanceInfo = NULL;
 
 	VkImageSubresourceRange skybox_subresource_range;
 	skybox_subresource_range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -1771,56 +1703,42 @@ int render_to_skybox_image(void)
 	skybox_subresource_range.baseArrayLayer = 0;
 	skybox_subresource_range.layerCount = 6;
 
-	VkImageMemoryBarrier skybox_image_memory_barrier;
-	skybox_image_memory_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	skybox_image_memory_barrier.pNext = NULL;
-	skybox_image_memory_barrier.srcAccessMask = 0;
-	skybox_image_memory_barrier.dstAccessMask = 0;
-	skybox_image_memory_barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	skybox_image_memory_barrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-	skybox_image_memory_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	skybox_image_memory_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	skybox_image_memory_barrier.image = s_skybox_image;
-	skybox_image_memory_barrier.subresourceRange = skybox_subresource_range;
+	vkBeginCommandBuffer(staggingCmd, &staggingBeginInfo);
 
-	vkCmdPipelineBarrier(s_cmdbuf_display[0], 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, NULL, 0, NULL, 1, &skybox_image_memory_barrier);
-	vkCmdPipelineBarrier(s_cmdbuf_display[0], 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, NULL, 0, NULL, 1, &linear_image_memory_barrier);
+	setImageLayout(staggingCmd, optimal_image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
+		 skybox_subresource_range);
 
-	VkRect2D render_area = { { 0, 0 },{ 1024, 1024 } };
-	VkClearValue clear_color = { 0 };
-	VkRenderPassBeginInfo rpBegin;
-	rpBegin.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	rpBegin.pNext = NULL;
-	rpBegin.renderPass = s_copy_renderpass;
-	rpBegin.framebuffer = framebuffer;
-	rpBegin.renderArea = render_area;
-	rpBegin.clearValueCount = 6;
-	rpBegin.pClearValues = &clear_color;
-	vkCmdBeginRenderPass(s_cmdbuf_display[0], &rpBegin, VK_SUBPASS_CONTENTS_INLINE);
+	vkCmdCopyBufferToImage(staggingCmd, staging_res.buffer, optimal_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, buffer_copy_regions.size(), buffer_copy_regions.data());
 
-	vkCmdBindPipeline(s_cmdbuf_display[0], VK_PIPELINE_BIND_POINT_GRAPHICS, s_copy_image_pipe);
-	vkCmdSetViewport(s_cmdbuf_display[0], 0, s_vp_state_copy_skybox.viewportCount, &s_vp_state_copy_skybox.viewport);
-	vkCmdSetScissor(s_cmdbuf_display[0], 0, s_vp_state_copy_skybox.scissorCount, &s_vp_state_copy_skybox.scissors);
-	vkCmdBindDescriptorSets(s_cmdbuf_display[0], VK_PIPELINE_BIND_POINT_GRAPHICS, s_common_pipeline_layout, 0, 1, &s_common_dset[0], 0, NULL);
+	setImageLayout(staggingCmd, optimal_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 
+		skybox_subresource_range);
 
-	vkCmdDraw(s_cmdbuf_display[0], 4, 1, 0, 0);
+	vkEndCommandBuffer(staggingCmd);
 
-	vkCmdEndRenderPass(s_cmdbuf_display[0]);
-	VK_VALIDATION_RESULT(vkEndCommandBuffer(s_cmdbuf_display[0]));
+	VkFence skyboxFence;
+	VkFenceCreateInfo skyboxFenceInfo;
+	skyboxFenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	skyboxFenceInfo.pNext = NULL;
+	skyboxFenceInfo.flags = 0;
+	vkCreateFence(s_gpu_device, &skyboxFenceInfo, VK_ALLOC_CALLBACK, &skyboxFence);
 
-	if (vkQueueSubmit(s_gpu_queue, 1, &submit_info, VK_NULL_HANDLE) != VK_SUCCESS) {
-		return 0;
-	}
-	if (vkQueueWaitIdle(s_gpu_queue) != VK_SUCCESS) {
-		return 0;
-	}
+	VkPipelineStageFlags skyboxPipelineStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	VkSubmitInfo skyboxSubmitInfo;
+	skyboxSubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	skyboxSubmitInfo.pNext = NULL;
+	skyboxSubmitInfo.commandBufferCount = 1;
+	skyboxSubmitInfo.pCommandBuffers = &staggingCmd;
+	skyboxSubmitInfo.waitSemaphoreCount = 0;
+	skyboxSubmitInfo.pWaitSemaphores = NULL;
+	skyboxSubmitInfo.signalSemaphoreCount = 0;
+	skyboxSubmitInfo.pSignalSemaphores = NULL;
+	skyboxSubmitInfo.pWaitDstStageMask = &skyboxPipelineStage;
 
-	vkDestroyImageView(s_gpu_device, optimal_image_view, VK_ALLOC_CALLBACK);
-	vkDestroyImage(s_gpu_device, optimal_image, VK_ALLOC_CALLBACK);
-	for (int i = 0; i < 6; ++i)
-		vkDestroyImageView(s_gpu_device, image_view[i], VK_ALLOC_CALLBACK);
-	
-	vkDestroyFramebuffer(s_gpu_device, framebuffer, VK_ALLOC_CALLBACK);
+	vkQueueSubmit(s_gpu_queue, 1, &skyboxSubmitInfo, skyboxFence);
+
+	vkWaitForFences(s_gpu_device, 1, &skyboxFence, true, UINT64_MAX);
+
+	update_common_dset();
 
 	return 1;
 }
