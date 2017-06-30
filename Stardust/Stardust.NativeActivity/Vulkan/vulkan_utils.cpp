@@ -182,8 +182,12 @@ stbi_uc* load_image(AAssetManager * pMgr, const char * fileName, int * x, int * 
 	unsigned char* imageData = (unsigned char*)malloc(size);
 	off_t readSize = AAsset_read(pAsset, (void*)imageData, size);
 	assert(size = readSize);
+	AAsset_close(pAsset);
 
-	return stbi_load_from_memory(imageData, readSize, x, y, comp, req_comp);
+	stbi_uc* pngData = stbi_load_from_memory(imageData, readSize, x, y, comp, req_comp);
+	free(imageData);
+
+	return pngData;
 }
 
 void setImageLayout(VkCommandBuffer cmdbuffer, VkImage image, VkImageLayout oldImageLayout, VkImageLayout newImageLayout, VkImageSubresourceRange subresourceRange, VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask)

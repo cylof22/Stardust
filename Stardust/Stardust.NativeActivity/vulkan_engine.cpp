@@ -200,7 +200,7 @@ int engine_init(void)
 		VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO, NULL, 0,
 		VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_NEAREST,
 		VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-		VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, 0.0f, VK_FALSE, 16, VK_TRUE, VK_COMPARE_OP_ALWAYS, 0.0f, 0.0f,
+		VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, 0.0f, VK_FALSE, 1.0f, VK_TRUE, VK_COMPARE_OP_ALWAYS, 0.0f, 0.0f,
 		VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FALSE
 	};
 	VK_VALIDATION_RESULT(vkCreateSampler(s_gpu_device, &sampler_info0, VK_ALLOC_CALLBACK, &s_sampler));
@@ -209,7 +209,7 @@ int engine_init(void)
 		VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO, NULL, 0,
 		VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_NEAREST,
 		VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_ADDRESS_MODE_REPEAT,
-		0.0f, VK_FALSE, 16, VK_TRUE, VK_COMPARE_OP_ALWAYS, 0.0f, 0.0f,
+		0.0f, VK_FALSE, 1.0f, VK_TRUE, VK_COMPARE_OP_ALWAYS, 0.0f, 0.0f,
 		VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FALSE
 	};
 	VK_VALIDATION_RESULT(vkCreateSampler(s_gpu_device, &sampler_info1, VK_ALLOC_CALLBACK, &s_sampler_repeat));
@@ -218,7 +218,7 @@ int engine_init(void)
 		VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO, NULL, 0,
 		VK_FILTER_NEAREST, VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_NEAREST,
 		VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-		VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, 0.0f, VK_FALSE, 16, VK_TRUE, VK_COMPARE_OP_ALWAYS, 0.0f, 0.0f,
+		VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, 0.0f, VK_FALSE, 1, VK_TRUE, VK_COMPARE_OP_ALWAYS, 0.0f, 0.0f,
 		VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FALSE
 	};
 	VK_VALIDATION_RESULT(vkCreateSampler(s_gpu_device, &sampler_info2, VK_ALLOC_CALLBACK, &s_sampler_nearest));
@@ -1636,14 +1636,20 @@ int render_to_skybox_image(void)
 		size_t size = w * h * comp;
 		memcpy(ptr + offset, data, size);
 
-		buffer_copy_regions[i].bufferOffset = offset;
+		buffer_copy_regions[i].bufferRowLength = 0;
+		buffer_copy_regions[i].bufferImageHeight = 0;
+		buffer_copy_regions[i].bufferOffset = size;
 		buffer_copy_regions[i].imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		buffer_copy_regions[i].imageSubresource.baseArrayLayer = i;
 		buffer_copy_regions[i].imageSubresource.layerCount = 1;
+		buffer_copy_regions[i].imageSubresource.mipLevel = 0;
 		buffer_copy_regions[i].imageExtent.width = w;
 		buffer_copy_regions[i].imageExtent.height = h;
 		buffer_copy_regions[i].imageExtent.depth = 1;
-
+		buffer_copy_regions[i].imageOffset.x = 0;
+		buffer_copy_regions[i].imageOffset.y = 0;
+		buffer_copy_regions[i].imageOffset.z = 0;
+		
 		offset += size;
 		stbi_image_free(data);
 	}
@@ -1670,15 +1676,6 @@ int render_to_skybox_image(void)
 	VK_VALIDATION_RESULT(vkAllocateMemory(s_gpu_device, &alloc_info_image, VK_ALLOC_CALLBACK, &optimal_image_mem));
 	VK_VALIDATION_RESULT(vkBindImageMemory(s_gpu_device, optimal_image, optimal_image_mem, 0));
 
-	VkImageView optimal_image_view;
-	VkImageViewCreateInfo image_view_info = {
-		VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, NULL, 0,
-		optimal_image, VK_IMAGE_VIEW_TYPE_CUBE, VK_FORMAT_R8G8B8A8_UNORM,
-		{ VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A },
-		{ VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 6 }
-	};
-	VK_VALIDATION_RESULT(vkCreateImageView(s_gpu_device, &image_view_info, VK_ALLOC_CALLBACK, &optimal_image_view));
-
 	// update the stagging buffer into the cubebox image
 	VkCommandBufferAllocateInfo staggingCmdInfo;
 	staggingCmdInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -1690,7 +1687,7 @@ int render_to_skybox_image(void)
 	VkCommandBuffer staggingCmd;
 	vkAllocateCommandBuffers(s_gpu_device, &staggingCmdInfo, &staggingCmd);
 
-	VkCommandBufferBeginInfo staggingBeginInfo;
+	VkCommandBufferBeginInfo staggingBeginInfo = {};
 	staggingBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	staggingBeginInfo.pNext = NULL;
 	staggingBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -1723,20 +1720,24 @@ int render_to_skybox_image(void)
 	vkCreateFence(s_gpu_device, &skyboxFenceInfo, VK_ALLOC_CALLBACK, &skyboxFence);
 
 	VkPipelineStageFlags skyboxPipelineStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-	VkSubmitInfo skyboxSubmitInfo;
+	VkSubmitInfo skyboxSubmitInfo = {};
 	skyboxSubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	skyboxSubmitInfo.pNext = NULL;
 	skyboxSubmitInfo.commandBufferCount = 1;
 	skyboxSubmitInfo.pCommandBuffers = &staggingCmd;
-	skyboxSubmitInfo.waitSemaphoreCount = 0;
-	skyboxSubmitInfo.pWaitSemaphores = NULL;
-	skyboxSubmitInfo.signalSemaphoreCount = 0;
-	skyboxSubmitInfo.pSignalSemaphores = NULL;
-	skyboxSubmitInfo.pWaitDstStageMask = &skyboxPipelineStage;
 
 	vkQueueSubmit(s_gpu_queue, 1, &skyboxSubmitInfo, skyboxFence);
 
 	vkWaitForFences(s_gpu_device, 1, &skyboxFence, true, UINT64_MAX);
+
+	VkImageView optimal_image_view;
+	VkImageViewCreateInfo image_view_info = {
+		VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, NULL, 0,
+		optimal_image, VK_IMAGE_VIEW_TYPE_CUBE, VK_FORMAT_R8G8B8A8_UNORM,
+		{ VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A },
+		{ VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 6 }
+	};
+	VK_VALIDATION_RESULT(vkCreateImageView(s_gpu_device, &image_view_info, VK_ALLOC_CALLBACK, &optimal_image_view));
 
 	update_common_dset();
 
