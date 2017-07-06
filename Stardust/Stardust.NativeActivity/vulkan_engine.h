@@ -1,5 +1,4 @@
 #pragma once
-#include <thread>
 #include <pthread.h>
 #include <semaphore.h>
 #include <glm\glm.hpp>
@@ -103,8 +102,8 @@ static VkRenderPass                    s_win_renderpass;
 static uint32_t                        s_win_width;
 static uint32_t                        s_win_height;
 static int                             s_res_idx;
-static int                             s_win_idx;
-static int                             s_cpu_core_count;
+static uint32_t                        s_win_idx;
+static uint32_t                        s_cpu_core_count;
 static int                             s_frame;
 //=============================================================================
 static VkImage                         s_depth_stencil_image;
@@ -234,6 +233,8 @@ int finish_particle_thread(THREAD_DATA *thrd);
 int release_particle_thread(THREAD_DATA *thrd);
 int update_particle_thread(THREAD_DATA *thrd);
 void* particle_thread(void *data);
+
+void update_swapChain();
 
 void cmd_clear(VkCommandBuffer cmdbuf);
 void cmd_display_fractal(VkCommandBuffer cmdbuf);

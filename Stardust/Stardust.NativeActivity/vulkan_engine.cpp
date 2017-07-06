@@ -141,7 +141,7 @@ int init_gpu_instance()
 
 int engine_init(void)
 {
-	s_cpu_core_count = std::thread::hardware_concurrency();
+	s_cpu_core_count = sysconf(_SC_NPROCESSORS_ONLN);
 
 	//s_font_letter_count = 0;
 
@@ -281,7 +281,7 @@ int engine_init(void)
 			return 0;
 	}
 
-	return 0;
+	return 1;
 }
 
 int engine_shutdown(void)
@@ -309,9 +309,9 @@ int engine_update(void)
 
 #ifdef MT_UPDATE
 	// Todo: How to use the system sychronous mechanism?
-	for (int i = 1; i < s_cpu_core_count; ++i) {
+	/*for (int i = 1; i < s_cpu_core_count; ++i) {
 		sem_post(&s_cmdgen_sem[i]);
-	}
+	}*/
 #endif
 
 	VkCommandBufferBeginInfo begin_info = {
@@ -319,22 +319,22 @@ int engine_update(void)
 	};
 	VK_VALIDATION_RESULT(vkBeginCommandBuffer(s_cmdbuf_clear[s_res_idx], &begin_info));
 	cmd_clear(s_cmdbuf_clear[s_res_idx]);
-	cmd_render_skybox(s_cmdbuf_clear[s_res_idx]);
+	//cmd_render_skybox(s_cmdbuf_clear[s_res_idx]);
 	VK_VALIDATION_RESULT(vkEndCommandBuffer(s_cmdbuf_clear[s_res_idx]));
 
-	VK_VALIDATION_RESULT(vkBeginCommandBuffer(s_cmdbuf_display[s_res_idx], &begin_info));
-	cmd_display_fractal(s_cmdbuf_display[s_res_idx]);
+	//VK_VALIDATION_RESULT(vkBeginCommandBuffer(s_cmdbuf_display[s_res_idx], &begin_info));
+	//cmd_display_fractal(s_cmdbuf_display[s_res_idx]);
 	/*for (int i = 0; i < s_glob_state->cpu_core_count; ++i) {
 		Graph_Draw(&s_graph[i], s_cmdbuf_display[s_res_idx]);
 	}
 	Cmd_Draw_Text(s_cmdbuf_display[s_res_idx]);*/
-	VK_VALIDATION_RESULT(vkEndCommandBuffer(s_cmdbuf_display[s_res_idx]));
+	//VK_VALIDATION_RESULT(vkEndCommandBuffer(s_cmdbuf_display[s_res_idx]));
 
 #ifdef MT_UPDATE
-	update_particle_thread(&s_thread[0]);
+	/*update_particle_thread(&s_thread[0]);
 	for (int i = 1; i < s_cpu_core_count; ++i) {
 		sem_wait(&(s_thread[i].sem));
-	}
+	}*/
 #else
 	for (int i = 0; i < s_glob_state->cpu_core_count; ++i) {
 		Update_Particle_Thread(&s_thread[i]);
@@ -350,19 +350,20 @@ int engine_update(void)
 	int cmdbuf_count = 0;
 
 	cmdbuf[cmdbuf_count++] = s_cmdbuf_clear[s_res_idx];
-	for (int i = 0; i < s_cpu_core_count; ++i) {
-		cmdbuf[cmdbuf_count++] = s_thread[i].cmdbuf[s_res_idx];
-	}
-	cmdbuf[cmdbuf_count++] = s_cmdbuf_display[s_res_idx];
+	//for (int i = 0; i < s_cpu_core_count; ++i) {
+	//	cmdbuf[cmdbuf_count++] = s_thread[i].cmdbuf[s_res_idx];
+	//}
+	//cmdbuf[cmdbuf_count++] = s_cmdbuf_display[s_res_idx];
 
 	VK_VALIDATION_RESULT(vkResetFences(s_gpu_device, 1, &s_fence[s_res_idx]));
 
+	VkPipelineStageFlags graphicFlag = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
 	VkSubmitInfo submit_info;
 	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	submit_info.pNext = NULL;
 	submit_info.waitSemaphoreCount = 1;
 	submit_info.pWaitSemaphores = &s_swap_chain_image_ready_semaphore;
-	submit_info.pWaitDstStageMask = NULL;
+	submit_info.pWaitDstStageMask = &graphicFlag;
 	submit_info.commandBufferCount = cmdbuf_count;
 	submit_info.pCommandBuffers = cmdbuf;
 	submit_info.signalSemaphoreCount = 0;
@@ -653,7 +654,7 @@ int create_common_dset(void)
 
 int update_constant_memory(void)
 {
-	return 0;
+	return 1;
 }
 
 void update_common_dset(void)
@@ -1053,6 +1054,7 @@ int create_particles(void)
 // Todo: create the particle rendering pipeline
 int create_particle_pipeline(void)
 {
+	return 1;
 	VkShaderModule vs, fs;
 	vs = VK_NULL_HANDLE;
 	fs = VK_NULL_HANDLE;
@@ -1879,6 +1881,23 @@ void* particle_thread(void * data)
 	return nullptr;
 }
 
+void update_swapChain()
+{
+	VkSemaphoreCreateInfo semaphoreInfo;
+	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+	semaphoreInfo.pNext = NULL;
+	semaphoreInfo.flags = 0;
+	VK_VALIDATION_RESULT(vkCreateSemaphore(s_gpu_device, &semaphoreInfo, VK_ALLOC_CALLBACK,
+		&s_swap_chain_image_ready_semaphore));
+
+	uint32_t swap_image_index;
+	VK_VALIDATION_RESULT(vkAcquireNextImageKHR(s_gpu_device, s_swap_chain, UINT64_MAX,
+		s_swap_chain_image_ready_semaphore, VK_NULL_HANDLE, &swap_image_index));
+
+	s_res_idx = swap_image_index;
+	s_win_idx = swap_image_index;
+}
+
 //Todo: Where to place the global state 
 void cmd_clear(VkCommandBuffer cmdbuf)
 {
@@ -1909,11 +1928,11 @@ void cmd_clear(VkCommandBuffer cmdbuf)
 			color_image_memory_barrier.image = s_win_images[i];
 			color_image_memory_barrier.subresourceRange = color_subresource_range;
 
-			vkCmdPipelineBarrier(cmdbuf, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, NULL, 0, NULL, 1, &color_image_memory_barrier);
+			vkCmdPipelineBarrier(cmdbuf, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, NULL, 0, NULL, 1, &color_image_memory_barrier);
 		}
 	}
 
-	VkClearColorValue clear_color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
+	VkClearColorValue clear_color = { { 1.0f, 0.0f, 0.0f, 1.0f } };
 	vkCmdClearColorImage(cmdbuf, s_win_images[s_win_idx], VK_IMAGE_LAYOUT_GENERAL, &clear_color, 1, &color_range);
 
 	if (!s_frame) {
@@ -1936,7 +1955,7 @@ void cmd_clear(VkCommandBuffer cmdbuf)
 		color_image_memory_barrier.image = s_float_image;
 		color_image_memory_barrier.subresourceRange = color_subresource_range;
 
-		vkCmdPipelineBarrier(cmdbuf, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, NULL, 0, NULL, 1, &color_image_memory_barrier);
+		vkCmdPipelineBarrier(cmdbuf, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, NULL, 0, NULL, 1, &color_image_memory_barrier);
 	}
 
 	vkCmdClearColorImage(cmdbuf, s_float_image, VK_IMAGE_LAYOUT_GENERAL, &clear_color, 1, &color_range);
@@ -1961,7 +1980,7 @@ void cmd_clear(VkCommandBuffer cmdbuf)
 		ds_image_memory_barrier.image = s_depth_stencil_image;
 		ds_image_memory_barrier.subresourceRange = ds_subresource_range;
 
-		vkCmdPipelineBarrier(cmdbuf, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, NULL, 0, NULL, 1, &ds_image_memory_barrier);
+		vkCmdPipelineBarrier(cmdbuf, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, NULL, 0, NULL, 1, &ds_image_memory_barrier);
 	}
 
 	VkClearDepthStencilValue ds_value = { 1.0f, 0 };
@@ -2005,11 +2024,16 @@ int present(uint32_t * image_indice)
 	present_info.pWaitSemaphores = NULL;
 	present_info.swapchainCount = 1;
 	present_info.pSwapchains = &s_swap_chain;
-	present_info.pImageIndices = image_indice;
+	if (image_indice == NULL)
+		present_info.pImageIndices = &s_win_idx;
+	else
+		present_info.pImageIndices = image_indice;
 	present_info.pResults = &result;
 
 	VK_VALIDATION_RESULT(vkQueuePresentKHR(s_gpu_queue, &present_info));
 	VK_VALIDATION_RESULT(result);
+
+	vkDestroySemaphore(s_gpu_device, s_swap_chain_image_ready_semaphore, VK_ALLOC_CALLBACK);
 
 	return 1;
 }

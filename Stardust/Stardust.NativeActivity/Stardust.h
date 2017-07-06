@@ -13,7 +13,6 @@
 #pragma once
 
 #include "Settings.h"
-#include "vulkan_engine.h"
 
 struct graph_data_t
 {
