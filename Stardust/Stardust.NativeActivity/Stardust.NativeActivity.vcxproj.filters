@@ -15,6 +15,12 @@
     <ClInclude Include="Stb\stb_image.h">
       <Filter>Stb</Filter>
     </ClInclude>
+    <ClInclude Include="shaderc\shaderc.h">
+      <Filter>shaderc</Filter>
+    </ClInclude>
+    <ClInclude Include="shaderc\shaderc.hpp">
+      <Filter>shaderc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="android_native_app_glue.c" />
@@ -37,6 +43,9 @@
     </Filter>
     <Filter Include="Stb">
       <UniqueIdentifier>{7d47691b-41da-462c-83c0-00fa0d6e6930}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shaderc">
+      <UniqueIdentifier>{a779f222-f485-4e9d-9ad6-dd0b47a5a3d6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
