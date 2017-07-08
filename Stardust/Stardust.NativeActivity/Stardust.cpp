@@ -35,7 +35,8 @@ int application_Init(android_app* pApp, ANativeWindow* pWnd, int argc, char ** a
 
 int VK_Init()
 {
-	init_device(s_glob_state.app,s_glob_state.window, s_glob_state.width, s_glob_state.height, true);
+	init_device(s_glob_state.app,s_glob_state.window, s_glob_state.width, s_glob_state.height, s_glob_state.transform_time, s_glob_state.seed,
+		0, true);
 
 	engine_init();
 

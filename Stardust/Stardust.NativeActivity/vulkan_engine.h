@@ -81,6 +81,11 @@ static VkDebugReportCallbackCreateInfoEXT s_dbgReportCallbackInfo;
 static android_app*                    s_app;
 static double                          s_time;
 static float                           s_time_delta;
+static unsigned int                    s_seed;
+static double                          s_transf_time;
+static bool                            s_transf_animate;
+static float                           s_palette_factor;
+static unsigned int                    s_palette_image_idx;
 static float                           s_fps;
 static float                           s_ms;
 static int                             s_exit_code;
@@ -144,11 +149,6 @@ static DepthStencilState               s_ds_state;
 static VkDeviceMemory                  s_constant_mem[k_Resource_Buffering];
 static VkBuffer                        s_constant_buf[k_Resource_Buffering];
 //=============================================================================
-// The copy renderpass is used to merge the six images into a cube box images for the skybox rendering
-static VkRenderPass                     s_copy_renderpass; 
-static VkPipeline                       s_copy_image_pipe;
-static VkFramebuffer                    s_copy_framebuffer;
-//=============================================================================
 static VkImage                          s_skybox_image;
 static VkImageView                      s_skybox_image_view;
 static VkPipeline                       s_skybox_pipe;
@@ -185,7 +185,7 @@ int engine_shutdown(void);
 int engine_update(void);
 void update_camera(void);
 //=============================================================================
-int init_device(android_app* pApp, void* pWnd, int width, int height, VkBool32 windowed);
+int init_device(android_app* pApp, void* pWnd, int width, int height, float init_time, unsigned int init_seed, bool is_transf_anim, VkBool32 windowed);
 void deinit_device(void);
 int init_framebuffer(void* pWnd, int width, int height, VkBool32 windowed, uint32_t image_count, VkImage *images);
 
@@ -210,9 +210,6 @@ int create_window_framebuffer(void);
 int create_constant_memory(void);
 
 int create_float_image_and_framebuffer(void);
-
-int create_copy_renderpass(void);
-int create_copy_pipeline(void);
 
 //int Create_Font_Resources(void);
 //int Create_Font_Pipeline(void);
