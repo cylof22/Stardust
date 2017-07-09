@@ -153,7 +153,7 @@ int engine_init(void)
 
 	s_frame = 0;
 
-	s_camera_direction = glm::vec3(24.0f, 24.0f, 10.0f);
+	s_camera_position = glm::vec3(24.0f, 24.0f, 10.0f);
 	s_camera_pitch = -VM_PIDIV4;
 	s_camera_yaw = 1.5f * VM_PIDIV4;
 
@@ -1590,12 +1590,12 @@ int render_to_skybox_image(void)
 	vkBeginCommandBuffer(staggingCmd, &staggingBeginInfo);
 
 	setImageLayout(staggingCmd, s_skybox_image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
-		 skybox_subresource_range);
+		 skybox_subresource_range, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
 
 	vkCmdCopyBufferToImage(staggingCmd, staging_res.buffer, s_skybox_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, buffer_copy_regions.size(), buffer_copy_regions.data());
 
 	setImageLayout(staggingCmd, s_skybox_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-		skybox_subresource_range);
+		skybox_subresource_range, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
 	vkEndCommandBuffer(staggingCmd);
 
