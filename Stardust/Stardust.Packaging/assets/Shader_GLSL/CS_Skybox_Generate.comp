@@ -1,0 +1,37 @@
+////////////////////////////////////////////////////////////////////////////////
+// Copyright 2017 Intel Corporation
+//
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not
+// use this file except in compliance with the License.  You may obtain a copy
+// of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+// License for the specific language governing permissions and limitations
+// under the License.
+////////////////////////////////////////////////////////////////////////////////
+
+#version 430 core
+
+layout(local_size_x = 14) in;
+int WA_local_size_x14;
+int WA_local_size_y1;
+int WA_local_size_z1;
+
+layout(binding = 6, std430) writeonly buffer SKYBOX
+{
+  vec4 vertex[14];
+} g_skybox;
+
+void main(void)
+{
+  // below code generates 14 tri strip cube geometry
+  int b = 1 << int(gl_GlobalInvocationID.x);
+  float x = (2.0 * float((0x287a & b) != 0) - 1.0) * 1000.0;
+  float y = (2.0 * float((0x02af & b) != 0) - 1.0) * 1000.0;
+  float z = (2.0 * float((0x31e3 & b) != 0) - 1.0) * 1000.0;
+  g_skybox.vertex[gl_GlobalInvocationID.x] = vec4(x, y, z, 1.0);
+}

@@ -120,21 +120,36 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <Content Include="assets\Shader_GLSL\CS_Skybox_Generate.bil" />
+    <Content Include="assets\Shader_GLSL\CS_Skybox_Generate.comp" />
     <Content Include="assets\Shader_GLSL\FS_Copy_Images.bil" />
     <Content Include="assets\Shader_GLSL\FS_Display.bil" />
+    <Content Include="assets\Shader_GLSL\FS_Display.frag" />
     <Content Include="assets\Shader_GLSL\FS_Font.bil" />
+    <Content Include="assets\Shader_GLSL\FS_Font.frag" />
     <Content Include="assets\Shader_GLSL\FS_Graph.bil" />
+    <Content Include="assets\Shader_GLSL\FS_Graph.frag" />
     <Content Include="assets\Shader_GLSL\FS_Hud.bil" />
+    <Content Include="assets\Shader_GLSL\FS_Hud.frag" />
     <Content Include="assets\Shader_GLSL\FS_Particle_Draw.bil" />
+    <Content Include="assets\Shader_GLSL\FS_Particle_Draw.frag" />
     <Content Include="assets\Shader_GLSL\FS_Skybox.bil" />
+    <Content Include="assets\Shader_GLSL\FS_Skybox.frag" />
     <Content Include="assets\Shader_GLSL\VS_Font.bil" />
+    <Content Include="assets\Shader_GLSL\VS_Font.vert" />
     <Content Include="assets\Shader_GLSL\VS_Graph.bil" />
+    <Content Include="assets\Shader_GLSL\VS_Graph.vert" />
     <Content Include="assets\Shader_GLSL\VS_Hud.bil" />
+    <Content Include="assets\Shader_GLSL\VS_Hud.vert" />
     <Content Include="assets\Shader_GLSL\VS_Particle_Draw.bil" />
+    <Content Include="assets\Shader_GLSL\VS_Particle_Draw.vert" />
     <Content Include="assets\Shader_GLSL\VS_Quad_LL.bil" />
+    <Content Include="assets\Shader_GLSL\VS_Quad_LL.vert" />
     <Content Include="assets\Shader_GLSL\VS_Quad_UL.bil" />
+    <Content Include="assets\Shader_GLSL\VS_Quad_UL.vert" />
     <Content Include="assets\Shader_GLSL\VS_Quad_UL_INV.bil" />
+    <Content Include="assets\Shader_GLSL\VS_Quad_UL_INV.vert" />
     <Content Include="assets\Shader_GLSL\VS_Skybox.bil" />
+    <Content Include="assets\Shader_GLSL\VS_Skybox.vert" />
     <Content Include="assets\Texture\Palette_Fire.png" />
     <Content Include="assets\Texture\Palette_Muted.png" />
     <Content Include="assets\Texture\Palette_Purple.png" />

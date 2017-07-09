@@ -303,48 +303,47 @@ void setImageLayout(VkCommandBuffer cmdbuffer, VkImage image, VkImageLayout oldI
 	vkCmdPipelineBarrier( cmdbuffer, srcStageMask, dstStageMask, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
 }
 
-//int VKU_Compile_Shader(AAssetManager * pMgr, VkDevice device, const char * fileName, shaderc_shader_kind kind, VkShaderModule * shaderModule)
-//{
-//	AAsset* pAsset = AAssetManager_open(pMgr, fileName, AASSET_MODE_UNKNOWN);
-//	if (!pAsset)
-//		return 0;
-//
-//	size_t size = AAsset_getLength(pAsset);
-//
-//	char *glslShader = (char*)malloc(size);
-//	off_t readSize = AAsset_read(pAsset, (void*)glslShader, size);
-//	assert(size == readSize);
-//
-//	if (!glslShader) return 0;
-//
-//	AAsset_close(pAsset);
-//
-//	// convert the file to Vulkan spv format
-//	shaderc::Compiler compiler;
-//	shaderc::CompileOptions options;
-//
-//	shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(
-//		glslShader, readSize, kind, fileName, options);
-//
-//	shaderc_compilation_status compileRes = module.GetCompilationStatus();
-//	const char* errorInfo = nullptr;
-//	//assert(compileRes == shaderc_compilation_status_success);
-//	if (compileRes == shaderc_compilation_status_success) {
-//		std::vector<uint32_t> result(module.cbegin(), module.cend());
-//
-//		VkResult res;
-//		// create the shaderModule
-//		VkShaderModuleCreateInfo info = {};
-//		info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-//		info.pNext = nullptr;
-//		info.flags = 0;
-//		info.codeSize = result.size() * sizeof(uint32_t);
-//		info.pCode = result.data();
-//
-//		VkShaderModule shaderModule = VK_NULL_HANDLE;
-//		res = vkCreateShaderModule(device, &info, nullptr, &shaderModule);
-//
-//		return 1;
-//	}
-//	return 0;
-//}
+int VKU_Compile_Shader(AAssetManager * pMgr, VkDevice device, const char * fileName, shaderc_shader_kind kind, VkShaderModule * shaderModule)
+{
+	AAsset* pAsset = AAssetManager_open(pMgr, fileName, AASSET_MODE_UNKNOWN);
+	if (!pAsset)
+		return 0;
+
+	size_t size = AAsset_getLength(pAsset);
+
+	char *glslShader = (char*)malloc(size);
+	off_t readSize = AAsset_read(pAsset, (void*)glslShader, size);
+	assert(size == readSize);
+
+	if (!glslShader) return 0;
+
+	AAsset_close(pAsset);
+
+	// convert the file to Vulkan spv format
+	shaderc::Compiler compiler;
+	shaderc::CompileOptions options;
+
+	shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(
+		glslShader, readSize, kind, fileName, options);
+
+	shaderc_compilation_status compileRes = module.GetCompilationStatus();
+	const char* errorInfo = nullptr;
+	//assert(compileRes == shaderc_compilation_status_success);
+	if (compileRes == shaderc_compilation_status_success) {
+		std::vector<uint32_t> result(module.cbegin(), module.cend());
+
+		VkResult res;
+		// create the shaderModule
+		VkShaderModuleCreateInfo info = {};
+		info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+		info.pNext = nullptr;
+		info.flags = 0;
+		info.codeSize = result.size() * sizeof(uint32_t);
+		info.pCode = result.data();
+
+		res = vkCreateShaderModule(device, &info, nullptr, shaderModule);
+
+		return 1;
+	}
+	return 0;
+}

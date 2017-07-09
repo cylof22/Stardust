@@ -293,8 +293,9 @@ int engine_shutdown(void)
 
 int engine_update(void)
 {
-	if (s_fence[s_res_idx]) {
-		VK_VALIDATION_RESULT(vkWaitForFences(s_gpu_device, 1, &s_fence[s_res_idx], VK_TRUE, UINT64_MAX));
+	if (s_fence[s_res_idx] && vkGetFenceStatus(s_gpu_device, s_fence[s_res_idx]) == VK_SUCCESS) {
+		vkWaitForFences(s_gpu_device, 1, &s_fence[s_res_idx], VK_TRUE, INT64_MAX);
+		vkResetFences(s_gpu_device, 1, &s_fence[s_res_idx]);
 	}
 
 	update_camera();
@@ -355,9 +356,7 @@ int engine_update(void)
 	//for (int i = 0; i < s_cpu_core_count; ++i) {
 	//	cmdbuf[cmdbuf_count++] = s_thread[i].cmdbuf[s_res_idx];
 	//}
-	//cmdbuf[cmdbuf_count++] = s_cmdbuf_display[s_res_idx];
-
-	VK_VALIDATION_RESULT(vkResetFences(s_gpu_device, 1, &s_fence[s_res_idx]));
+	cmdbuf[cmdbuf_count++] = s_cmdbuf_display[s_res_idx];
 
 	VkPipelineStageFlags graphicFlag = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
 	VkSubmitInfo submit_info;
@@ -731,7 +730,7 @@ void update_common_dset(void)
 	};
 
 	VkDescriptorBufferInfo constant_buf_info = {
-		s_constant_buf[s_res_idx], 0, 4 * sizeof(glm::mat4) + 48 * sizeof(unsigned int) + sizeof(float)
+		s_constant_buf[s_res_idx], 0, sizeof(glm::mat4) + 48 * sizeof(unsigned int) + sizeof(float)
 	};
 
 	VkDescriptorBufferInfo skybox_buf_info = {
@@ -979,10 +978,8 @@ int create_display_pipeline(void)
 	vs = VK_NULL_HANDLE;
 	fs = VK_NULL_HANDLE;
 
-	//VKU_Compile_Shader(s_app->activity->assetManager, s_gpu_device,"Shader_GLSL/VS_Quad_UL.vert", shaderc_glsl_vertex_shader, &vs);
-	//VKU_Compile_Shader(s_app->activity->assetManager, s_gpu_device,"Shader_GLSL/FS_Display.frag", shaderc_glsl_fragment_shader, &fs);
-	VKU_Load_Shader(s_app->activity->assetManager, s_gpu_device, "Shader_GLSL/VS_Quad_UL.bil", &vs);
-	VKU_Load_Shader(s_app->activity->assetManager, s_gpu_device, "Shader_GLSL/FS_Display.bil", &fs);
+	VKU_Compile_Shader(s_app->activity->assetManager, s_gpu_device,"Shader_GLSL/VS_Quad_UL.vert", shaderc_glsl_vertex_shader, &vs);
+	VKU_Compile_Shader(s_app->activity->assetManager, s_gpu_device,"Shader_GLSL/FS_Display.frag", shaderc_glsl_fragment_shader, &fs);
 
 	if (vs == VK_NULL_HANDLE || fs == VK_NULL_HANDLE)
 	{
@@ -1114,8 +1111,8 @@ int create_particle_pipeline(void)
 	vs = VK_NULL_HANDLE;
 	fs = VK_NULL_HANDLE;
 
-	VKU_Load_Shader(s_app->activity->assetManager,s_gpu_device, "Shader_GLSL/VS_Particle_Draw.bil", &vs);
-	VKU_Load_Shader(s_app->activity->assetManager,s_gpu_device, "Shader_GLSL/FS_Particle_Draw.bil", &fs);
+	VKU_Compile_Shader(s_app->activity->assetManager,s_gpu_device, "Shader_GLSL/VS_Particle_Draw.vert", shaderc_glsl_vertex_shader, &vs);
+	VKU_Compile_Shader(s_app->activity->assetManager,s_gpu_device, "Shader_GLSL/FS_Particle_Draw.frag", shaderc_glsl_fragment_shader, &fs);
 
 	if (vs == VK_NULL_HANDLE || fs == VK_NULL_HANDLE)
 	{
@@ -1244,7 +1241,7 @@ int create_window_framebuffer(void)
 int create_constant_memory(void)
 {
 	VkBufferCreateInfo buffer_info = {
-		VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, NULL, 0, 4 * sizeof(glm::mat4) + 48 * sizeof(unsigned int) + sizeof(float),
+		VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, NULL, 0, sizeof(glm::mat4) + 48 * sizeof(unsigned int) + sizeof(float),
 		VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_SHARING_MODE_EXCLUSIVE, 0, NULL
 	};
 	VkMemoryAllocateInfo alloc_info = {
@@ -1339,8 +1336,8 @@ int create_skybox_pipeline(void)
 	vs = VK_NULL_HANDLE;
 	fs = VK_NULL_HANDLE;
 
-	VKU_Load_Shader(s_app->activity->assetManager, s_gpu_device, "Shader_GLSL/VS_Skybox.bil", &vs);
-	VKU_Load_Shader(s_app->activity->assetManager, s_gpu_device, "Shader_GLSL/FS_Skybox.bil", &fs);
+	VKU_Compile_Shader(s_app->activity->assetManager, s_gpu_device, "Shader_GLSL/VS_Skybox.vert", shaderc_glsl_vertex_shader, &vs);
+	VKU_Compile_Shader(s_app->activity->assetManager, s_gpu_device, "Shader_GLSL/FS_Skybox.frag", shaderc_glsl_fragment_shader, &fs);
 
 	if (vs == VK_NULL_HANDLE || fs == VK_NULL_HANDLE)
 	{
@@ -1435,7 +1432,7 @@ int create_skybox_generate_pipeline(void)
 {
 	VkShaderModule cs;
 	cs = VK_NULL_HANDLE;
-	VKU_Load_Shader(s_app->activity->assetManager, s_gpu_device, "Shader_GLSL/CS_Skybox_Generate.bil", &cs);
+	VKU_Compile_Shader(s_app->activity->assetManager, s_gpu_device, "Shader_GLSL/CS_Skybox_Generate.comp", shaderc_glsl_compute_shader,&cs);
 
 	if (cs == VK_NULL_HANDLE)
 	{
@@ -1475,13 +1472,21 @@ int create_skybox_image(void)
 	VkImageCreateInfo image_info = {
 		VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, NULL, 0,
 		VK_IMAGE_TYPE_2D, VK_FORMAT_R8G8B8A8_UNORM,{ 1024, 1024, 1 }, 1, 6, VK_SAMPLE_COUNT_1_BIT,
-		VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT |
-		VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_SHARING_MODE_EXCLUSIVE, 0,
+		VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, VK_SHARING_MODE_EXCLUSIVE, 0,
 		NULL, VK_IMAGE_LAYOUT_UNDEFINED
 	};
 	VK_VALIDATION_RESULT(vkCreateImage(s_gpu_device, &image_info, VK_ALLOC_CALLBACK, &s_skybox_image));
-	if (!VKU_Alloc_Image_Object(s_image_mempool_texture, s_skybox_image, NULL, get_mem_type_index(s_gpu, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)))
-		return 0;
+
+	VkMemoryRequirements mreq_image = { 0 };
+	vkGetImageMemoryRequirements(s_gpu_device, s_skybox_image, &mreq_image);
+
+	VkDeviceMemory optimal_image_mem;
+	VkMemoryAllocateInfo alloc_info_image = {
+		VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO, NULL, mreq_image.size,
+		get_mem_type_index(s_gpu, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+	};
+	VK_VALIDATION_RESULT(vkAllocateMemory(s_gpu_device, &alloc_info_image, VK_ALLOC_CALLBACK, &optimal_image_mem));
+	VK_VALIDATION_RESULT(vkBindImageMemory(s_gpu_device, s_skybox_image, optimal_image_mem, 0));
 
 	VkImageViewCreateInfo image_view_info = {
 		VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, NULL, 0,
@@ -1494,7 +1499,6 @@ int create_skybox_image(void)
 	return 1;
 }
 
-//Todo: need to implment the png image reading
 int render_to_skybox_image(void)
 {
 	// Use stagging buffer to copy the skybox image
@@ -1542,7 +1546,7 @@ int render_to_skybox_image(void)
 
 		buffer_copy_regions[i].bufferRowLength = 0;
 		buffer_copy_regions[i].bufferImageHeight = 0;
-		buffer_copy_regions[i].bufferOffset = size;
+		buffer_copy_regions[i].bufferOffset = offset;
 		buffer_copy_regions[i].imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		buffer_copy_regions[i].imageSubresource.baseArrayLayer = i;
 		buffer_copy_regions[i].imageSubresource.layerCount = 1;
@@ -1558,27 +1562,6 @@ int render_to_skybox_image(void)
 		stbi_image_free(data);
 	}
 	vkUnmapMemory(s_gpu_device, staging_res.memory);
-
-	VkImage optimal_image;
-	VkImageCreateInfo image_info = {
-		VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, NULL, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT,
-		VK_IMAGE_TYPE_2D, VK_FORMAT_R8G8B8A8_UNORM,{ 1024, 1024, 1 }, 1, 6, VK_SAMPLE_COUNT_1_BIT,
-		VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, VK_SHARING_MODE_EXCLUSIVE, 0,
-		NULL, VK_IMAGE_LAYOUT_UNDEFINED
-	};
-
-	VK_VALIDATION_RESULT(vkCreateImage(s_gpu_device, &image_info, VK_ALLOC_CALLBACK, &optimal_image));
-
-	VkMemoryRequirements mreq_image = { 0 };
-	vkGetImageMemoryRequirements(s_gpu_device, optimal_image, &mreq_image);
-
-	VkDeviceMemory optimal_image_mem;
-	VkMemoryAllocateInfo alloc_info_image = {
-		VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO, NULL, mreq_image.size,
-		get_mem_type_index(s_gpu, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
-	};
-	VK_VALIDATION_RESULT(vkAllocateMemory(s_gpu_device, &alloc_info_image, VK_ALLOC_CALLBACK, &optimal_image_mem));
-	VK_VALIDATION_RESULT(vkBindImageMemory(s_gpu_device, optimal_image, optimal_image_mem, 0));
 
 	// update the stagging buffer into the cubebox image
 	VkCommandBufferAllocateInfo staggingCmdInfo;
@@ -1606,12 +1589,12 @@ int render_to_skybox_image(void)
 
 	vkBeginCommandBuffer(staggingCmd, &staggingBeginInfo);
 
-	setImageLayout(staggingCmd, optimal_image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
+	setImageLayout(staggingCmd, s_skybox_image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
 		 skybox_subresource_range);
 
-	vkCmdCopyBufferToImage(staggingCmd, staging_res.buffer, optimal_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, buffer_copy_regions.size(), buffer_copy_regions.data());
+	vkCmdCopyBufferToImage(staggingCmd, staging_res.buffer, s_skybox_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, buffer_copy_regions.size(), buffer_copy_regions.data());
 
-	setImageLayout(staggingCmd, optimal_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 
+	setImageLayout(staggingCmd, s_skybox_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 		skybox_subresource_range);
 
 	vkEndCommandBuffer(staggingCmd);
@@ -1634,15 +1617,6 @@ int render_to_skybox_image(void)
 
 	vkWaitForFences(s_gpu_device, 1, &skyboxFence, true, UINT64_MAX);
 
-	VkImageView optimal_image_view;
-	VkImageViewCreateInfo image_view_info = {
-		VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, NULL, 0,
-		optimal_image, VK_IMAGE_VIEW_TYPE_CUBE, VK_FORMAT_R8G8B8A8_UNORM,
-		{ VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A },
-		{ VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 6 }
-	};
-	VK_VALIDATION_RESULT(vkCreateImageView(s_gpu_device, &image_view_info, VK_ALLOC_CALLBACK, &optimal_image_view));
-
 	update_common_dset();
 
 	return 1;
@@ -1655,7 +1629,6 @@ void cmd_render_skybox(VkCommandBuffer cmdbuf)
 	vkCmdDispatch(cmdbuf, 1, 1, 1);
 
 	vkCmdPipelineBarrier(cmdbuf, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, NULL, 0, NULL, 0, NULL);
-
 
 	VkCommandBufferBeginInfo begin_info = {
 		VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, NULL, 0, NULL
@@ -1831,7 +1804,7 @@ void cmd_clear(VkCommandBuffer cmdbuf)
 		}
 	}
 
-	VkClearColorValue clear_color = { { 1.0f, 0.0f, 0.0f, 1.0f } };
+	VkClearColorValue clear_color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
 	//vkCmdClearColorImage(cmdbuf, s_win_images[s_win_idx], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, &clear_color, 1, &color_range);
 	if (!s_frame) {
 		VkImageSubresourceRange color_subresource_range;
@@ -1867,7 +1840,14 @@ void cmd_display_fractal(VkCommandBuffer cmdbuf)
 	};
 
 	VkRect2D render_area = { { 0, 0 },{ s_win_width, s_win_height } };
-	VkClearValue clear_color = { 0.0f, 0.0f, 0.0f, 0.0f };
+	VkClearValue clear_color[2];
+	clear_color[0].color.float32[0] = 1.0f;
+	clear_color[0].color.float32[1] = 0.0f;
+	clear_color[0].color.float32[2] = 0.0f;
+
+	clear_color[1].depthStencil.depth = 1.0f;
+	clear_color[1].depthStencil.stencil = 0.0f;
+
 	VkRenderPassBeginInfo rpBegin;
 	rpBegin.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	rpBegin.pNext = NULL;
@@ -1875,7 +1855,7 @@ void cmd_display_fractal(VkCommandBuffer cmdbuf)
 	rpBegin.framebuffer = s_win_framebuffer[s_win_idx];
 	rpBegin.renderArea = render_area;
 	rpBegin.clearValueCount = 2;
-	rpBegin.pClearValues = &clear_color;
+	rpBegin.pClearValues = clear_color;
 	vkCmdBeginRenderPass(cmdbuf, &rpBegin, VK_SUBPASS_CONTENTS_INLINE);
 
 	vkCmdBindPipeline(cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS, s_display_pipe);

@@ -46,6 +46,9 @@ struct glob_state_t
 	android_app* app;
 };
 
+static int s_app_start_tics;
+static int s_frame_begin_tics;
+static int s_last_current_time_printf_tics;
 static struct glob_state_t s_glob_state;
 
 int application_Init(android_app* pApp, ANativeWindow* pWnd, int argc, char **argv);
@@ -53,6 +56,8 @@ int application_Init(android_app* pApp, ANativeWindow* pWnd, int argc, char **ar
 int VK_Init();
 int VK_Shutdown();
 int VK_Run();
+
+int update_frame_status(double *time, float *time_delta, int frame, int filter_fps, float *fps, float *ms);
 
 // Todo: Handle event in android is different from the desktop
 //int Handle_Events(struct glob_state_t *state);

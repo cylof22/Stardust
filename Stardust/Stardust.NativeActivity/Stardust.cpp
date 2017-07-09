@@ -1,4 +1,5 @@
 #include "Stardust.h"
+#include <chrono>
 #include "vulkan_engine.h"
 #include "Vulkan\vulkan_utils.h"
 #include "Vulkan\vulkan_wrapper.h"
@@ -52,16 +53,16 @@ int VK_Run()
 {
 #ifdef MT_UPDATE
 	set_exit_code(STARDUST_CONTINUE);
-	for (int i = 1; i < s_glob_state.cpu_core_count; ++i) {
+	/*for (int i = 1; i < s_glob_state.cpu_core_count; ++i) {
 		pthread_create(&(s_thread[i].thread), NULL, &particle_thread, &(s_thread[i]));
-	}
+	}*/
 #endif
 
 	while (s_exit_code == STARDUST_CONTINUE) {
-		/*int recalculate_fps = Update_Frame_Stats(&s_time, &s_time_delta, s_glob_state->frame,
+		int recalculate_fps = update_frame_status(&s_time, &s_time_delta, s_frame,
 			0, &s_fps, &s_ms);
 
-		Set_Exit_Code(Handle_Events(s_glob_state));*/
+		/*Set_Exit_Code(Handle_Events(s_glob_state));*/
 
 		update_swapChain();
 
@@ -106,4 +107,38 @@ int VK_Run()
 #endif
 
 	return s_exit_code;
+}
+
+int update_frame_status(double * time, float * time_delta, int frame, int filter_fps, float * fps, float * ms)
+{
+	static double prev_time;
+	static double prev_fps_time;
+	static int fps_frame = 0;
+
+	std::chrono::time_point<std::chrono::system_clock> current_time = std::chrono::system_clock::now();
+	s_frame_begin_tics = std::chrono::system_clock::to_time_t(current_time);
+	
+	if (frame == 0) {
+		s_app_start_tics = s_frame_begin_tics;
+		prev_time = s_frame_begin_tics * 0.001;
+		prev_fps_time = s_frame_begin_tics * 0.001;
+	}
+
+	*time = s_frame_begin_tics * 0.001;
+	*time_delta = (float)(*time - prev_time);
+	prev_time = *time;
+
+	if ((*time - prev_fps_time) >= 0.5) {
+		float fps_unfiltered = fps_frame / (float)(*time - prev_fps_time);
+
+		*fps = fps_unfiltered;
+		*ms = 1.0f / fps_unfiltered * 1000;
+		//Log("[%.1f fps %.3f ms]\n", *fps, *ms);
+
+		prev_fps_time = *time;
+		fps_frame = 1;
+		return 1;
+	}
+	fps_frame++;
+	return 0;
 }
